@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "956357823661",
+    "project_id": "stepout-franqueado-3zcule",
+    "storage_bucket": "stepout-franqueado-3zcule.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:956357823661:android:8f4fbf341c83df85c64a24",
+        "android_client_info": {
+          "package_name": "com.mycompany.stepoutfranqueado"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCaiyhVBKaP7itht4uhQeSvrr9V0HVh9vc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
