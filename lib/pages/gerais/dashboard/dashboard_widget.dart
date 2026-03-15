@@ -65,7 +65,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
         key: scaffoldKey,
         backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
         drawer: Drawer(
-          elevation: 16.0,
+          elevation: 0.0,
           child: Padding(
             padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 1.0, 0.0),
             child: Container(
@@ -2096,7 +2096,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                                 children: [
                                   Padding(
                                     padding: EdgeInsetsDirectional.fromSTEB(
-                                        0.0, 0.0, 0.0, 40.0),
+                                        0.0, 0.0, 0.0, 16.0),
                                     child: PageView.builder(
                                       controller: _model.pageViewController ??=
                                           PageController(
@@ -2122,18 +2122,16 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                                                     BorderRadius.circular(8.0),
                                                 child: Image.network(
                                                   valueOrDefault<String>(
-                                                    pageViewBannersRow.imagemPc,
+                                                    MediaQuery.sizeOf(context).width < 479
+                                                        ? pageViewBannersRow.imagemMobile ?? pageViewBannersRow.imagemPc
+                                                        : pageViewBannersRow.imagemPc,
                                                     'https://www.shutterstock.com/image-vector/missing-picture-page-website-design-600nw-1552421075.jpg',
                                                   ),
                                                   width:
                                                       MediaQuery.sizeOf(context)
                                                               .width *
                                                           1.0,
-                                                  height:
-                                                      MediaQuery.sizeOf(context)
-                                                              .height *
-                                                          0.4,
-                                                  fit: BoxFit.fitWidth,
+                                                  fit: BoxFit.cover,
                                                 ),
                                               ),
                                             ),

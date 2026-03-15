@@ -149,8 +149,41 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
           child: Scaffold(
             key: scaffoldKey,
             backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
-            body: Column(
-              mainAxisSize: MainAxisSize.max,
+            drawer: Drawer(
+              elevation: 16.0,
+              child: Padding(
+                padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 1.0, 0.0),
+                child: Container(
+                  width: double.infinity,
+                  height: MediaQuery.sizeOf(context).height * 1.0,
+                  constraints: BoxConstraints(
+                    maxWidth: 300.0,
+                  ),
+                  decoration: BoxDecoration(
+                    color: FlutterFlowTheme.of(context).primaryBackground,
+                    boxShadow: [
+                      BoxShadow(
+                        color: FlutterFlowTheme.of(context).alternate,
+                        offset: Offset(
+                          1.0,
+                          0.0,
+                        ),
+                      )
+                    ],
+                  ),
+                  child: wrapWithModel(
+                    model: _model.drawerSidebarModel,
+                    updateCallback: () => safeSetState(() {}),
+                    child: SidebarWidget(
+                      route: 'Aula',
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            body: SingleChildScrollView(
+              child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 if (responsiveVisibility(
@@ -176,10 +209,9 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                       },
                     ),
                   ),
-                Expanded(
-                  child: Container(
+                Container(
                     width: MediaQuery.sizeOf(context).width * 1.0,
-                    height: MediaQuery.sizeOf(context).height * 1.0,
+                    height: MediaQuery.sizeOf(context).height * 0.85,
                     decoration: BoxDecoration(
                       color: FlutterFlowTheme.of(context).secondaryBackground,
                     ),
@@ -660,7 +692,6 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                           ],
                         ),
                       ),
-                    ),
                 if (responsiveVisibility(
                   context: context,
                   tabletLandscape: false,
@@ -1073,6 +1104,7 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                   ),
               ],
             ),
+          ),
           ),
         );
       },

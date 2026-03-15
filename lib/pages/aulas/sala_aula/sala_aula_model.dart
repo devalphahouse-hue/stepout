@@ -26,6 +26,8 @@ class SalaAulaModel extends FlutterFlowModel<SalaAulaWidget> {
   ApiCallResponse? apiResulti7f;
   // Model for Sidebar component.
   late SidebarModel sidebarModel;
+  // Model for Sidebar component (drawer).
+  late SidebarModel drawerSidebarModel;
   // State field(s) for TextField widget.
   FocusNode? textFieldFocusNode1;
   TextEditingController? textController1;
@@ -38,11 +40,13 @@ class SalaAulaModel extends FlutterFlowModel<SalaAulaWidget> {
   @override
   void initState(BuildContext context) {
     sidebarModel = createModel(context, () => SidebarModel());
+    drawerSidebarModel = createModel(context, () => SidebarModel());
   }
 
   @override
   void dispose() {
     sidebarModel.dispose();
+    drawerSidebarModel.dispose();
     textFieldFocusNode1?.dispose();
     textController1?.dispose();
 
