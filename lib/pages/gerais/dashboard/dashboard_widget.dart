@@ -2131,7 +2131,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                                                       MediaQuery.sizeOf(context)
                                                               .width *
                                                           1.0,
-                                                  fit: BoxFit.contain,
+                                                  fit: BoxFit.cover,
                                                 ),
                                               ),
                                             ),

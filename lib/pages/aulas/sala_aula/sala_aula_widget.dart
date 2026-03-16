@@ -184,9 +184,9 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                 ),
               ),
             ),
-            body: SingleChildScrollView(
+            body: SafeArea(
               child: Column(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize: MainAxisSize.max,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 if (responsiveVisibility(
@@ -197,7 +197,7 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                 ))
                   Padding(
                     padding:
-                        EdgeInsetsDirectional.fromSTEB(0.0, 12.0, 0.0, 0.0),
+                        EdgeInsetsDirectional.fromSTEB(0.0, 4.0, 0.0, 0.0),
                     child: FlutterFlowIconButton(
                       borderRadius: 8.0,
                       buttonSize: 40.0,
@@ -212,9 +212,9 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                       },
                     ),
                   ),
-                Container(
+                Expanded(
+                  child: Container(
                     width: MediaQuery.sizeOf(context).width * 1.0,
-                    height: MediaQuery.sizeOf(context).height * 0.95,
                     decoration: BoxDecoration(
                       color: FlutterFlowTheme.of(context).secondaryBackground,
                     ),
@@ -236,41 +236,25 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                             ),
                           ),
                         Expanded(
-                          child: Container(
-                            height: MediaQuery.sizeOf(context).height * 1.0,
-                            decoration: BoxDecoration(),
-                            child: SingleChildScrollView(
-                              primary: false,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.max,
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Container(
-                                    width: double.infinity,
-                                    height:
-                                        MediaQuery.sizeOf(context).height * 1.0,
-                                    child: custom_widgets.JaasMeetingView(
-                                      width: double.infinity,
-                                      height:
-                                          MediaQuery.sizeOf(context).height *
-                                              1.0,
-                                      appId:
-                                          'vpaas-magic-cookie-621aa69dceea45c4b411c688b616a9bb',
-                                      roomShort: widget!.aulaId!,
-                                      jwt: FFAppState().jaasJWT,
-                                      displayName:
-                                          _model.userlog!.firstOrNull!.nome!,
-                                      email: currentUserEmail,
-                                      audioMuted: false,
-                                      videoMuted: false,
-                                      prejoin: true,
-                                      lang: 'ptBR',
-                                      enableSpaNavigationListeners: false,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              return custom_widgets.JaasMeetingView(
+                                width: constraints.maxWidth,
+                                height: constraints.maxHeight,
+                                appId:
+                                    'vpaas-magic-cookie-621aa69dceea45c4b411c688b616a9bb',
+                                roomShort: widget!.aulaId!,
+                                jwt: FFAppState().jaasJWT,
+                                displayName:
+                                    _model.userlog!.firstOrNull!.nome!,
+                                email: currentUserEmail,
+                                audioMuted: false,
+                                videoMuted: false,
+                                prejoin: true,
+                                lang: 'ptBR',
+                                enableSpaNavigationListeners: false,
+                              );
+                            },
                           ),
                         ),
                         if (responsiveVisibility(
@@ -695,29 +679,25 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                           ],
                         ),
                       ),
+                    ),
                 if (responsiveVisibility(
                   context: context,
                   tabletLandscape: false,
                   desktop: false,
                 ))
                   Padding(
-                    padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 8.0),
+                    padding: EdgeInsetsDirectional.fromSTEB(8.0, 8.0, 8.0, 8.0),
                     child: Container(
                       width: MediaQuery.sizeOf(context).width * 1.0,
-                      constraints: BoxConstraints(
-                        maxHeight: MediaQuery.sizeOf(context).height * 0.35,
-                      ),
                       decoration: BoxDecoration(
                         color: FlutterFlowTheme.of(context).secondaryBackground,
                       ),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.max,
+                      child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Padding(
                               padding: EdgeInsetsDirectional.fromSTEB(
-                                  0.0, 0.0, 8.0, 0.0),
+                                  0.0, 0.0, 0.0, 8.0),
                               child: Material(
                                 color: Colors.transparent,
                                 elevation: 2.0,
@@ -725,10 +705,10 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                                   borderRadius: BorderRadius.circular(12.0),
                                 ),
                                 child: Container(
-                                  width: 300.0,
+                                  width: double.infinity,
                                   constraints: BoxConstraints(
-                                    minHeight: 200.0,
-                                    maxHeight: MediaQuery.sizeOf(context).height * 0.30,
+                                    minHeight: 100.0,
+                                    maxHeight: MediaQuery.sizeOf(context).height * 0.25,
                                   ),
                                   decoration: BoxDecoration(
                                     color: FlutterFlowTheme.of(context)
@@ -935,8 +915,11 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                                 borderRadius: BorderRadius.circular(12.0),
                               ),
                               child: Container(
-                                width: 300.0,
-                                height: 200.0,
+                                width: double.infinity,
+                                constraints: BoxConstraints(
+                                  minHeight: 100.0,
+                                  maxHeight: 200.0,
+                                ),
                                 decoration: BoxDecoration(
                                   color: FlutterFlowTheme.of(context)
                                       .primaryBackground,
@@ -1109,7 +1092,6 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                             ),
                           ],
                         ),
-                      ),
                     ),
                   ),
               ],
