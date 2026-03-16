@@ -2058,7 +2058,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                       ),
                       Padding(
                         padding: EdgeInsetsDirectional.fromSTEB(
-                            MediaQuery.sizeOf(context).width < kBreakpointSmall ? 16.0 : 50.0, 16.0, MediaQuery.sizeOf(context).width < kBreakpointSmall ? 16.0 : 50.0, 0.0),
+                            0.0, 16.0, 0.0, 0.0),
                         child: FutureBuilder<List<BannersRow>>(
                           future: BannersTable().queryRows(
                             queryFn: (q) => q.eqOrNull(
@@ -2093,7 +2093,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                                 children: [
                                   Padding(
                                     padding: EdgeInsetsDirectional.fromSTEB(
-                                        0.0, 0.0, 0.0, 16.0),
+                                        0.0, 0.0, 0.0, 40.0),
                                     child: PageView.builder(
                                       controller: _model.pageViewController ??=
                                           PageController(
@@ -2110,29 +2110,23 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                                         final pageViewBannersRow =
                                             pageViewBannersRowList[
                                                 pageViewIndex];
-                                        return Column(
-                                          mainAxisSize: MainAxisSize.max,
-                                          children: [
-                                            Expanded(
-                                              child: ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(8.0),
-                                                child: Image.network(
-                                                  valueOrDefault<String>(
-                                                    MediaQuery.sizeOf(context).width < 479
-                                                        ? ((pageViewBannersRow.imagemMobile != null && pageViewBannersRow.imagemMobile!.isNotEmpty) ? pageViewBannersRow.imagemMobile : pageViewBannersRow.imagemPc)
-                                                        : pageViewBannersRow.imagemPc,
-                                                    'https://www.shutterstock.com/image-vector/missing-picture-page-website-design-600nw-1552421075.jpg',
-                                                  ),
-                                                  width:
-                                                      MediaQuery.sizeOf(context)
-                                                              .width *
-                                                          1.0,
-                                                  fit: BoxFit.fitWidth,
-                                                ),
-                                              ),
+                                        return ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
+                                          child: Image.network(
+                                            valueOrDefault<String>(
+                                              MediaQuery.sizeOf(context).width < 479
+                                                  ? ((pageViewBannersRow.imagemMobile != null && pageViewBannersRow.imagemMobile!.isNotEmpty) ? pageViewBannersRow.imagemMobile : pageViewBannersRow.imagemPc)
+                                                  : pageViewBannersRow.imagemPc,
+                                              'https://www.shutterstock.com/image-vector/missing-picture-page-website-design-600nw-1552421075.jpg',
                                             ),
-                                          ],
+                                            width:
+                                                MediaQuery.sizeOf(context)
+                                                        .width *
+                                                    1.0,
+                                            height: 200.0,
+                                            fit: BoxFit.fitHeight,
+                                          ),
                                         );
                                       },
                                     ),
