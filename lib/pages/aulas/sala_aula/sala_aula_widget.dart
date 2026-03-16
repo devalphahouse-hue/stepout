@@ -150,6 +150,198 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
           child: Scaffold(
             key: scaffoldKey,
             backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+            floatingActionButton: responsiveVisibility(
+              context: context,
+              tabletLandscape: false,
+              desktop: false,
+            )
+                ? FloatingActionButton(
+                    backgroundColor: FlutterFlowTheme.of(context).primary,
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (bottomSheetContext) {
+                          return Container(
+                            height: MediaQuery.sizeOf(context).height * 0.55,
+                            decoration: BoxDecoration(
+                              color: FlutterFlowTheme.of(context).primaryBackground,
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(16.0),
+                                topRight: Radius.circular(16.0),
+                              ),
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Handle bar
+                                    Center(
+                                      child: Container(
+                                        width: 40.0,
+                                        height: 4.0,
+                                        margin: EdgeInsets.only(bottom: 16.0),
+                                        decoration: BoxDecoration(
+                                          color: FlutterFlowTheme.of(context).alternate,
+                                          borderRadius: BorderRadius.circular(2.0),
+                                        ),
+                                      ),
+                                    ),
+                                    // Conteúdos vinculados
+                                    Text(
+                                      'Conteúdos vinculados',
+                                      style: FlutterFlowTheme.of(context)
+                                          .titleSmall
+                                          .override(
+                                            font: GoogleFonts.inter(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                            letterSpacing: 0.0,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
+                                    SizedBox(height: 8.0),
+                                    Builder(
+                                      builder: (context) {
+                                        final listaConteudos =
+                                            salaAulaAulasRow?.conteudosVinculados?.toList() ?? [];
+                                        return ListView.builder(
+                                          padding: EdgeInsets.zero,
+                                          shrinkWrap: true,
+                                          physics: NeverScrollableScrollPhysics(),
+                                          itemCount: listaConteudos.length,
+                                          itemBuilder: (context, index) {
+                                            final conteudoId = listaConteudos[index];
+                                            return FutureBuilder<List<ConteudosRow>>(
+                                              future: ConteudosTable().querySingleRow(
+                                                queryFn: (q) => q.eqOrNull('id', conteudoId),
+                                              ),
+                                              builder: (context, snapshot) {
+                                                if (!snapshot.hasData) {
+                                                  return Padding(
+                                                    padding: EdgeInsets.symmetric(vertical: 4.0),
+                                                    child: SizedBox(
+                                                      height: 20.0,
+                                                      width: 20.0,
+                                                      child: CircularProgressIndicator(
+                                                        strokeWidth: 2.0,
+                                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                                          FlutterFlowTheme.of(context).primary,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  );
+                                                }
+                                                final row = snapshot.data!.isNotEmpty
+                                                    ? snapshot.data!.first
+                                                    : null;
+                                                return Padding(
+                                                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.spaceBetween,
+                                                    children: [
+                                                      Flexible(
+                                                        child: Text(
+                                                          '- ${row?.nomeConteudo ?? ''}',
+                                                          style: FlutterFlowTheme.of(context)
+                                                              .bodyMedium,
+                                                        ),
+                                                      ),
+                                                      InkWell(
+                                                        onTap: () async {
+                                                          if (row?.linkConteudo != null) {
+                                                            await launchURL(row!.linkConteudo!);
+                                                          }
+                                                        },
+                                                        child: Icon(
+                                                          Icons.remove_red_eye_outlined,
+                                                          color: FlutterFlowTheme.of(context)
+                                                              .primaryText,
+                                                          size: 22.0,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              },
+                                            );
+                                          },
+                                        );
+                                      },
+                                    ),
+                                    SizedBox(height: 16.0),
+                                    // Mural
+                                    Container(
+                                      width: double.infinity,
+                                      child: TextFormField(
+                                        controller: _model.textController2,
+                                        focusNode: _model.textFieldFocusNode2,
+                                        autofocus: false,
+                                        readOnly: true,
+                                        obscureText: false,
+                                        decoration: InputDecoration(
+                                          isDense: true,
+                                          labelText: 'Mural',
+                                          labelStyle: FlutterFlowTheme.of(context).labelMedium,
+                                          hintText: 'Mural da Aula',
+                                          hintStyle: FlutterFlowTheme.of(context).labelMedium,
+                                          enabledBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                              color: FlutterFlowTheme.of(context).alternate,
+                                              width: 1.0,
+                                            ),
+                                            borderRadius: BorderRadius.circular(8.0),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                              color: Color(0x00000000),
+                                              width: 1.0,
+                                            ),
+                                            borderRadius: BorderRadius.circular(8.0),
+                                          ),
+                                          errorBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                              color: FlutterFlowTheme.of(context).error,
+                                              width: 1.0,
+                                            ),
+                                            borderRadius: BorderRadius.circular(8.0),
+                                          ),
+                                          focusedErrorBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                              color: FlutterFlowTheme.of(context).error,
+                                              width: 1.0,
+                                            ),
+                                            borderRadius: BorderRadius.circular(8.0),
+                                          ),
+                                          filled: true,
+                                          fillColor:
+                                              FlutterFlowTheme.of(context).primaryBackground,
+                                        ),
+                                        style: FlutterFlowTheme.of(context).bodyMedium,
+                                        maxLines: 6,
+                                        minLines: 3,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    child: Icon(
+                      Icons.article_outlined,
+                      color: FlutterFlowTheme.of(context).info,
+                      size: 24.0,
+                    ),
+                  )
+                : null,
             drawer: Drawer(
               elevation: 16.0,
               child: PointerInterceptor(
@@ -213,13 +405,7 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                     ),
                   ),
                 Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      bottom: MediaQuery.sizeOf(context).width < kBreakpointSmall
-                          ? MediaQuery.of(context).padding.bottom + 50.0
-                          : 0.0,
-                    ),
-                    child: Container(
+                  child: Container(
                     width: MediaQuery.sizeOf(context).width * 1.0,
                     decoration: BoxDecoration(
                       color: FlutterFlowTheme.of(context).secondaryBackground,
@@ -686,421 +872,6 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                         ),
                       ),
                     ),
-                  ),
-                if (responsiveVisibility(
-                  context: context,
-                  tabletLandscape: false,
-                  desktop: false,
-                ))
-                  Padding(
-                    padding: EdgeInsetsDirectional.fromSTEB(8.0, 8.0, 8.0, 8.0),
-                    child: Container(
-                      width: MediaQuery.sizeOf(context).width * 1.0,
-                      decoration: BoxDecoration(
-                        color: FlutterFlowTheme.of(context).secondaryBackground,
-                      ),
-                      child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Padding(
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  0.0, 0.0, 0.0, 8.0),
-                              child: Material(
-                                color: Colors.transparent,
-                                elevation: 2.0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12.0),
-                                ),
-                                child: Container(
-                                  width: double.infinity,
-                                  constraints: BoxConstraints(
-                                    minHeight: 100.0,
-                                    maxHeight: MediaQuery.sizeOf(context).height * 0.25,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: FlutterFlowTheme.of(context)
-                                        .primaryBackground,
-                                    borderRadius: BorderRadius.circular(12.0),
-                                  ),
-                                  child: Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        0.0, 0.0, 12.0, 0.0),
-                                    child: SingleChildScrollView(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Padding(
-                                          padding: EdgeInsets.all(8.0),
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.max,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                'Conteúdos vinculados',
-                                                style:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyMedium
-                                                        .override(
-                                                          font:
-                                                              GoogleFonts.inter(
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            fontStyle:
-                                                                FlutterFlowTheme.of(
-                                                                        context)
-                                                                    .bodyMedium
-                                                                    .fontStyle,
-                                                          ),
-                                                          letterSpacing: 0.0,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .bodyMedium
-                                                                  .fontStyle,
-                                                        ),
-                                              ),
-                                              SingleChildScrollView(
-                                                child: Column(
-                                                  mainAxisSize:
-                                                      MainAxisSize.max,
-                                                  children: [
-                                                    Builder(
-                                                      builder: (context) {
-                                                        final listaConteudos =
-                                                            salaAulaAulasRow
-                                                                    ?.conteudosVinculados
-                                                                    ?.toList() ??
-                                                                [];
-
-                                                        return ListView.builder(
-                                                          padding:
-                                                              EdgeInsets.zero,
-                                                          shrinkWrap: true,
-                                                          physics:
-                                                              NeverScrollableScrollPhysics(),
-                                                          scrollDirection:
-                                                              Axis.vertical,
-                                                          itemCount:
-                                                              listaConteudos
-                                                                  .length,
-                                                          itemBuilder: (context,
-                                                              listaConteudosIndex) {
-                                                            final listaConteudosItem =
-                                                                listaConteudos[
-                                                                    listaConteudosIndex];
-                                                            return FutureBuilder<
-                                                                List<
-                                                                    ConteudosRow>>(
-                                                              future: ConteudosTable()
-                                                                  .querySingleRow(
-                                                                queryFn: (q) =>
-                                                                    q.eqOrNull(
-                                                                  'id',
-                                                                  listaConteudosItem,
-                                                                ),
-                                                              ),
-                                                              builder: (context,
-                                                                  snapshot) {
-                                                                // Customize what your widget looks like when it's loading.
-                                                                if (!snapshot
-                                                                    .hasData) {
-                                                                  return Center(
-                                                                    child:
-                                                                        SizedBox(
-                                                                      width:
-                                                                          50.0,
-                                                                      height:
-                                                                          50.0,
-                                                                      child:
-                                                                          CircularProgressIndicator(
-                                                                        valueColor:
-                                                                            AlwaysStoppedAnimation<Color>(
-                                                                          FlutterFlowTheme.of(context)
-                                                                              .primary,
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                  );
-                                                                }
-                                                                List<ConteudosRow>
-                                                                    rowConteudosRowList =
-                                                                    snapshot
-                                                                        .data!;
-
-                                                                final rowConteudosRow =
-                                                                    rowConteudosRowList
-                                                                            .isNotEmpty
-                                                                        ? rowConteudosRowList
-                                                                            .first
-                                                                        : null;
-
-                                                                return Row(
-                                                                  mainAxisSize:
-                                                                      MainAxisSize
-                                                                          .max,
-                                                                  mainAxisAlignment:
-                                                                      MainAxisAlignment
-                                                                          .spaceBetween,
-                                                                  children: [
-                                                                    Flexible(
-                                                                      child:
-                                                                          Text(
-                                                                        '- ${valueOrDefault<String>(
-                                                                          rowConteudosRow
-                                                                              ?.nomeConteudo,
-                                                                          'nomeConteudo',
-                                                                        )}',
-                                                                        style: FlutterFlowTheme.of(context)
-                                                                            .bodyMedium
-                                                                            .override(
-                                                                              font: GoogleFonts.inter(
-                                                                                fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                                fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                              ),
-                                                                              letterSpacing: 0.0,
-                                                                              fontWeight: FlutterFlowTheme.of(context).bodyMedium.fontWeight,
-                                                                              fontStyle: FlutterFlowTheme.of(context).bodyMedium.fontStyle,
-                                                                            ),
-                                                                      ),
-                                                                    ),
-                                                                    InkWell(
-                                                                      splashColor:
-                                                                          Colors
-                                                                              .transparent,
-                                                                      focusColor:
-                                                                          Colors
-                                                                              .transparent,
-                                                                      hoverColor:
-                                                                          Colors
-                                                                              .transparent,
-                                                                      highlightColor:
-                                                                          Colors
-                                                                              .transparent,
-                                                                      onTap:
-                                                                          () async {
-                                                                        await launchURL(
-                                                                            rowConteudosRow!.linkConteudo!);
-                                                                      },
-                                                                      child:
-                                                                          Icon(
-                                                                        Icons
-                                                                            .remove_red_eye_outlined,
-                                                                        color: FlutterFlowTheme.of(context)
-                                                                            .primaryText,
-                                                                        size:
-                                                                            24.0,
-                                                                      ),
-                                                                    ),
-                                                                  ],
-                                                                );
-                                                              },
-                                                            );
-                                                          },
-                                                        );
-                                                      },
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ].divide(SizedBox(height: 5.0)),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Material(
-                              color: Colors.transparent,
-                              elevation: 2.0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12.0),
-                              ),
-                              child: Container(
-                                width: double.infinity,
-                                constraints: BoxConstraints(
-                                  minHeight: 100.0,
-                                  maxHeight: 200.0,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: FlutterFlowTheme.of(context)
-                                      .primaryBackground,
-                                  borderRadius: BorderRadius.circular(12.0),
-                                ),
-                                child: Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.max,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        child: Container(
-                                          width: double.infinity,
-                                          child: TextFormField(
-                                            controller: _model.textController2,
-                                            focusNode:
-                                                _model.textFieldFocusNode2,
-                                            autofocus: false,
-                                            readOnly: true,
-                                            obscureText: false,
-                                            decoration: InputDecoration(
-                                              isDense: true,
-                                              labelText: 'Mural',
-                                              labelStyle:
-                                                  FlutterFlowTheme.of(context)
-                                                      .labelMedium
-                                                      .override(
-                                                        font: GoogleFonts.inter(
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .labelMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .labelMedium
-                                                                  .fontStyle,
-                                                        ),
-                                                        letterSpacing: 0.0,
-                                                        fontWeight:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .labelMedium
-                                                                .fontWeight,
-                                                        fontStyle:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .labelMedium
-                                                                .fontStyle,
-                                                      ),
-                                              hintText: 'Mural da Aula',
-                                              hintStyle:
-                                                  FlutterFlowTheme.of(context)
-                                                      .labelMedium
-                                                      .override(
-                                                        font: GoogleFonts.inter(
-                                                          fontWeight:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .labelMedium
-                                                                  .fontWeight,
-                                                          fontStyle:
-                                                              FlutterFlowTheme.of(
-                                                                      context)
-                                                                  .labelMedium
-                                                                  .fontStyle,
-                                                        ),
-                                                        letterSpacing: 0.0,
-                                                        fontWeight:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .labelMedium
-                                                                .fontWeight,
-                                                        fontStyle:
-                                                            FlutterFlowTheme.of(
-                                                                    context)
-                                                                .labelMedium
-                                                                .fontStyle,
-                                                      ),
-                                              enabledBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .alternate,
-                                                  width: 1.0,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(8.0),
-                                              ),
-                                              focusedBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: Color(0x00000000),
-                                                  width: 1.0,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(8.0),
-                                              ),
-                                              errorBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .error,
-                                                  width: 1.0,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(8.0),
-                                              ),
-                                              focusedErrorBorder:
-                                                  OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: FlutterFlowTheme.of(
-                                                          context)
-                                                      .error,
-                                                  width: 1.0,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(8.0),
-                                              ),
-                                              filled: true,
-                                              fillColor:
-                                                  FlutterFlowTheme.of(context)
-                                                      .primaryBackground,
-                                            ),
-                                            style: FlutterFlowTheme.of(context)
-                                                .bodyMedium
-                                                .override(
-                                                  font: GoogleFonts.inter(
-                                                    fontWeight:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodyMedium
-                                                            .fontWeight,
-                                                    fontStyle:
-                                                        FlutterFlowTheme.of(
-                                                                context)
-                                                            .bodyMedium
-                                                            .fontStyle,
-                                                  ),
-                                                  letterSpacing: 0.0,
-                                                  fontWeight:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMedium
-                                                          .fontWeight,
-                                                  fontStyle:
-                                                      FlutterFlowTheme.of(
-                                                              context)
-                                                          .bodyMedium
-                                                          .fontStyle,
-                                                ),
-                                            maxLines: 6,
-                                            minLines: 6,
-                                            cursorColor:
-                                                FlutterFlowTheme.of(context)
-                                                    .primaryText,
-                                            enableInteractiveSelection: true,
-                                            validator: _model
-                                                .textController2Validator
-                                                .asValidator(context),
-                                          ),
-                                        ),
-                                      ),
-                                    ].divide(SizedBox(height: 5.0)),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                    ),
-                  ),
               ],
             ),
           ),
