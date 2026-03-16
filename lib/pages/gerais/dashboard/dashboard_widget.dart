@@ -2123,7 +2123,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                                                 child: Image.network(
                                                   valueOrDefault<String>(
                                                     MediaQuery.sizeOf(context).width < 479
-                                                        ? pageViewBannersRow.imagemMobile ?? pageViewBannersRow.imagemPc
+                                                        ? ((pageViewBannersRow.imagemMobile != null && pageViewBannersRow.imagemMobile!.isNotEmpty) ? pageViewBannersRow.imagemMobile : pageViewBannersRow.imagemPc)
                                                         : pageViewBannersRow.imagemPc,
                                                     'https://www.shutterstock.com/image-vector/missing-picture-page-website-design-600nw-1552421075.jpg',
                                                   ),
@@ -2131,7 +2131,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                                                       MediaQuery.sizeOf(context)
                                                               .width *
                                                           1.0,
-                                                  fit: BoxFit.cover,
+                                                  fit: BoxFit.contain,
                                                 ),
                                               ),
                                             ),

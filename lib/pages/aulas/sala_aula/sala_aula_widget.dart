@@ -7,6 +7,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import 'dart:ui';
+import 'package:pointer_interceptor/pointer_interceptor.dart';
 import '/custom_code/widgets/index.dart' as custom_widgets;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -151,31 +152,33 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
             backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
             drawer: Drawer(
               elevation: 16.0,
-              child: Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 1.0, 0.0),
-                child: Container(
-                  width: double.infinity,
-                  height: MediaQuery.sizeOf(context).height * 1.0,
-                  constraints: BoxConstraints(
-                    maxWidth: 300.0,
-                  ),
-                  decoration: BoxDecoration(
-                    color: FlutterFlowTheme.of(context).primaryBackground,
-                    boxShadow: [
-                      BoxShadow(
-                        color: FlutterFlowTheme.of(context).alternate,
-                        offset: Offset(
-                          1.0,
-                          0.0,
-                        ),
-                      )
-                    ],
-                  ),
-                  child: wrapWithModel(
-                    model: _model.drawerSidebarModel,
-                    updateCallback: () => safeSetState(() {}),
-                    child: SidebarWidget(
-                      route: 'Aula',
+              child: PointerInterceptor(
+                child: Padding(
+                  padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 1.0, 0.0),
+                  child: Container(
+                    width: double.infinity,
+                    height: MediaQuery.sizeOf(context).height * 1.0,
+                    constraints: BoxConstraints(
+                      maxWidth: 300.0,
+                    ),
+                    decoration: BoxDecoration(
+                      color: FlutterFlowTheme.of(context).primaryBackground,
+                      boxShadow: [
+                        BoxShadow(
+                          color: FlutterFlowTheme.of(context).alternate,
+                          offset: Offset(
+                            1.0,
+                            0.0,
+                          ),
+                        )
+                      ],
+                    ),
+                    child: wrapWithModel(
+                      model: _model.drawerSidebarModel,
+                      updateCallback: () => safeSetState(() {}),
+                      child: SidebarWidget(
+                        route: 'Aula',
+                      ),
                     ),
                   ),
                 ),
@@ -211,7 +214,7 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                   ),
                 Container(
                     width: MediaQuery.sizeOf(context).width * 1.0,
-                    height: MediaQuery.sizeOf(context).height * 0.85,
+                    height: MediaQuery.sizeOf(context).height * 0.95,
                     decoration: BoxDecoration(
                       color: FlutterFlowTheme.of(context).secondaryBackground,
                     ),
@@ -701,7 +704,9 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                     padding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 8.0),
                     child: Container(
                       width: MediaQuery.sizeOf(context).width * 1.0,
-                      height: MediaQuery.sizeOf(context).height * 0.25,
+                      constraints: BoxConstraints(
+                        maxHeight: MediaQuery.sizeOf(context).height * 0.35,
+                      ),
                       decoration: BoxDecoration(
                         color: FlutterFlowTheme.of(context).secondaryBackground,
                       ),
@@ -721,7 +726,10 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                                 ),
                                 child: Container(
                                   width: 300.0,
-                                  height: 200.0,
+                                  constraints: BoxConstraints(
+                                    minHeight: 200.0,
+                                    maxHeight: MediaQuery.sizeOf(context).height * 0.30,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: FlutterFlowTheme.of(context)
                                         .primaryBackground,
@@ -730,8 +738,9 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                                   child: Padding(
                                     padding: EdgeInsetsDirectional.fromSTEB(
                                         0.0, 0.0, 12.0, 0.0),
+                                    child: SingleChildScrollView(
                                     child: Column(
-                                      mainAxisSize: MainAxisSize.max,
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Padding(
                                           padding: EdgeInsets.all(8.0),
@@ -913,6 +922,7 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                                           ),
                                         ),
                                       ],
+                                    ),
                                     ),
                                   ),
                                 ),
