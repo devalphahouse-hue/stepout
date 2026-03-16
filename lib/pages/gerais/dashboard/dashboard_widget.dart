@@ -2086,12 +2086,9 @@ class _DashboardWidgetState extends State<DashboardWidget> {
 
                             return Container(
                               width: MediaQuery.sizeOf(context).width * 1.0,
-                              // Responsivo: altura proporcional ao dispositivo
                               height: MediaQuery.sizeOf(context).width < kBreakpointSmall
-                                  ? MediaQuery.sizeOf(context).height * 0.28
-                                  : MediaQuery.sizeOf(context).width < kBreakpointMedium
-                                      ? MediaQuery.sizeOf(context).height * 0.35
-                                      : MediaQuery.sizeOf(context).height * 0.45,
+                                  ? MediaQuery.sizeOf(context).height * 0.35
+                                  : 660.0,
                               child: Stack(
                                 children: [
                                   Padding(
@@ -2131,7 +2128,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                                                       MediaQuery.sizeOf(context)
                                                               .width *
                                                           1.0,
-                                                  fit: BoxFit.cover,
+                                                  fit: BoxFit.fitWidth,
                                                 ),
                                               ),
                                             ),
