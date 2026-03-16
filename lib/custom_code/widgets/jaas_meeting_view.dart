@@ -240,6 +240,8 @@ class _JaasMeetingViewState extends State<JaasMeetingView> {
       'config.startWithAudioMuted': widget.audioMuted ? 'true' : 'false',
       'config.startWithVideoMuted': widget.videoMuted ? 'true' : 'false',
       'config.defaultLanguage': widget.lang,
+      'config.toolbarConfig.alwaysVisible': 'true',
+      'config.toolbarConfig.autoHideTimeout': '0',
       if (widget.displayName.isNotEmpty)
         'userInfo.displayName': widget.displayName,
       if (widget.email.isNotEmpty) 'userInfo.email': widget.email,

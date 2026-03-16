@@ -213,14 +213,20 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                     ),
                   ),
                 Expanded(
-                  child: Container(
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.sizeOf(context).width < kBreakpointSmall
+                          ? MediaQuery.of(context).padding.bottom + 50.0
+                          : 0.0,
+                    ),
+                    child: Container(
                     width: MediaQuery.sizeOf(context).width * 1.0,
                     decoration: BoxDecoration(
                       color: FlutterFlowTheme.of(context).secondaryBackground,
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.max,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         if (responsiveVisibility(
                           context: context,
@@ -680,6 +686,7 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                         ),
                       ),
                     ),
+                  ),
                 if (responsiveVisibility(
                   context: context,
                   tabletLandscape: false,
