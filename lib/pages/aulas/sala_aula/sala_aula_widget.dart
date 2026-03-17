@@ -155,7 +155,8 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
               tabletLandscape: false,
               desktop: false,
             )
-                ? FloatingActionButton(
+                ? PointerInterceptor(
+                    child: FloatingActionButton(
                     backgroundColor: FlutterFlowTheme.of(context).primary,
                     onPressed: () {
                       showModalBottomSheet(
@@ -340,7 +341,8 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                       color: FlutterFlowTheme.of(context).info,
                       size: 24.0,
                     ),
-                  )
+                  ),
+                )
                 : null,
             drawer: Drawer(
               elevation: 16.0,
