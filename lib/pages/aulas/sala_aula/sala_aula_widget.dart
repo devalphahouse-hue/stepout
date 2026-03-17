@@ -162,6 +162,7 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                       showModalBottomSheet(
                         context: context,
                         isScrollControlled: true,
+                        enableDrag: false,
                         backgroundColor: Colors.transparent,
                         builder: (bottomSheetContext) {
                           return Container(
@@ -180,18 +181,41 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                                   mainAxisSize: MainAxisSize.min,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // Handle bar
-                                    Center(
-                                      child: Container(
-                                        width: 40.0,
-                                        height: 4.0,
-                                        margin: EdgeInsets.only(bottom: 16.0),
-                                        decoration: BoxDecoration(
-                                          color: FlutterFlowTheme.of(context).alternate,
-                                          borderRadius: BorderRadius.circular(2.0),
+                                    // Botão fechar
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          'Informações da Aula',
+                                          style: FlutterFlowTheme.of(context)
+                                              .titleSmall
+                                              .override(
+                                                font: GoogleFonts.inter(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                                letterSpacing: 0.0,
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                         ),
-                                      ),
+                                        InkWell(
+                                          onTap: () => Navigator.of(bottomSheetContext).pop(),
+                                          child: Container(
+                                            width: 32.0,
+                                            height: 32.0,
+                                            decoration: BoxDecoration(
+                                              color: FlutterFlowTheme.of(context).alternate,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Icon(
+                                              Icons.close,
+                                              color: FlutterFlowTheme.of(context).primaryText,
+                                              size: 18.0,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
+                                    SizedBox(height: 16.0),
                                     // Conteúdos vinculados
                                     Text(
                                       'Conteúdos vinculados',
