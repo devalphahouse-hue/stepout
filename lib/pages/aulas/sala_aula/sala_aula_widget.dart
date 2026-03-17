@@ -165,7 +165,8 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                         enableDrag: false,
                         backgroundColor: Colors.transparent,
                         builder: (bottomSheetContext) {
-                          return Container(
+                          return PointerInterceptor(
+                          child: Container(
                             height: MediaQuery.sizeOf(context).height * 0.55,
                             decoration: BoxDecoration(
                               color: FlutterFlowTheme.of(context).primaryBackground,
@@ -356,6 +357,7 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                                 ),
                               ),
                             ),
+                          ),
                           );
                         },
                       );
