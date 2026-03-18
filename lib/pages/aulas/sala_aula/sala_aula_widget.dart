@@ -33,6 +33,7 @@ class SalaAulaWidget extends StatefulWidget {
 
 class _SalaAulaWidgetState extends State<SalaAulaWidget> {
   late SalaAulaModel _model;
+  String _jwtFixo = '';
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -62,9 +63,10 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
       );
 
       if ((_model.apiResulti7f?.succeeded ?? true)) {
-        FFAppState().jaasJWT = SalaJitsiCall.tokenjwt(
+        _jwtFixo = SalaJitsiCall.tokenjwt(
           (_model.apiResulti7f?.jsonBody ?? ''),
         )!;
+        FFAppState().jaasJWT = _jwtFixo;
         safeSetState(() {});
       }
     });
@@ -464,7 +466,7 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                                 appId:
                                     'vpaas-magic-cookie-621aa69dceea45c4b411c688b616a9bb',
                                 roomShort: widget!.aulaId!,
-                                jwt: FFAppState().jaasJWT,
+                                jwt: _jwtFixo,
                                 displayName:
                                     _model.userlog!.firstOrNull!.nome!,
                                 email: currentUserEmail,

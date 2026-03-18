@@ -52,3 +52,5 @@ pubspec.lock
 .env
 *.env
 *.key
+
+.vercel

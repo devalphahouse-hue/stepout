@@ -61,6 +61,7 @@ class _JaasMeetingViewState extends State<JaasMeetingView> {
   late final String _viewType;
 
   html.IFrameElement? _iframe;
+  bool _iframeLoaded = false;
 
   // Listeners/subscriptions (Web)
   html.EventListener? _beforeUnloadListener;
@@ -120,18 +121,15 @@ class _JaasMeetingViewState extends State<JaasMeetingView> {
     final roomChanged = oldWidget.appId != widget.appId ||
         oldWidget.roomShort != widget.roomShort;
 
-    // Só recarrega o iframe se a sala mudou ou se o JWT mudou de/para vazio
-    // (primeira carga do token). Ignora mudanças em props cosméticas para
-    // evitar que rebuilds do StreamBuilder destruam a videochamada.
+    // Só carrega o iframe na PRIMEIRA vez que o JWT fica disponível.
+    // _iframeLoaded impede que rebuilds do StreamBuilder recarreguem o iframe.
     final jwtBecameAvailable =
-        oldWidget.jwt.isEmpty && widget.jwt.isNotEmpty;
-    final jwtWasCleared =
-        oldWidget.jwt.isNotEmpty && widget.jwt.isEmpty;
-    final jwtChanged = jwtBecameAvailable || jwtWasCleared;
+        oldWidget.jwt.isEmpty && widget.jwt.isNotEmpty && !_iframeLoaded;
 
     if (roomChanged) {
       _syncRoomKeys();
       _cleanupOrphanIframesForThisRoom(skip: _iframe);
+      _iframeLoaded = false;
 
       if (_iframe != null) {
         _iframe!
@@ -140,8 +138,9 @@ class _JaasMeetingViewState extends State<JaasMeetingView> {
       }
     }
 
-    if ((roomChanged || jwtChanged) && _iframe != null) {
+    if ((roomChanged || jwtBecameAvailable) && _iframe != null) {
       _iframe!.src = _buildSrc();
+      _iframeLoaded = true;
     }
   }
 
