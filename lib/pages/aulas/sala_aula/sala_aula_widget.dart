@@ -90,8 +90,6 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<FFAppState>();
-
     return StreamBuilder<List<AulasRow>>(
       stream: _model.salaAulaSupabaseStream ??= SupaFlow.client
           .from("Aulas")
