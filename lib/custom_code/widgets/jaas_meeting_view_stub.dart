@@ -17,6 +17,7 @@ class JaasMeetingViewPlatform extends StatefulWidget {
     this.displayName = '',
     this.email = '',
     this.enableSpaNavigationListeners = false,
+    this.onJwtRefreshNeeded,
   });
 
   final double width;
@@ -31,6 +32,7 @@ class JaasMeetingViewPlatform extends StatefulWidget {
   final String displayName;
   final String email;
   final bool enableSpaNavigationListeners;
+  final VoidCallback? onJwtRefreshNeeded;
 
   @override
   State<JaasMeetingViewPlatform> createState() =>

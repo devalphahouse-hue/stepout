@@ -86,6 +86,11 @@ flutter {
     source '../..'
 }
 
+configurations.all {
+    // Resolve duplicate media3 classes between video_player and Jitsi SDK
+    exclude group: 'androidx.media3', module: 'media3-exoplayer-rtsp'
+}
+
 dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.1.0"

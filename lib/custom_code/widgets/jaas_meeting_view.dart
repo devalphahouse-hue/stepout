@@ -28,6 +28,7 @@ class JaasMeetingView extends StatelessWidget {
     this.displayName = '',
     this.email = '',
     this.enableSpaNavigationListeners = false,
+    this.onJwtRefreshNeeded,
   });
 
   final double width;
@@ -42,6 +43,7 @@ class JaasMeetingView extends StatelessWidget {
   final String displayName;
   final String email;
   final bool enableSpaNavigationListeners;
+  final VoidCallback? onJwtRefreshNeeded;
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +60,7 @@ class JaasMeetingView extends StatelessWidget {
       displayName: displayName,
       email: email,
       enableSpaNavigationListeners: enableSpaNavigationListeners,
+      onJwtRefreshNeeded: onJwtRefreshNeeded,
     );
   }
 }

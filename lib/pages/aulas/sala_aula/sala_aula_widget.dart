@@ -90,60 +90,17 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<AulasRow>>(
-      stream: _model.salaAulaSupabaseStream ??= SupaFlow.client
-          .from("Aulas")
-          .stream(primaryKey: ['id'])
-          .eqOrNull(
-            'id',
-            widget!.aulaId,
-          )
-          .map((list) => list.map((item) => AulasRow(item)).toList()),
-      builder: (context, snapshot) {
-        // Customize what your widget looks like when it's loading.
-        if (!snapshot.hasData) {
-          return Scaffold(
-            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
-            body: Center(
-              child: SizedBox(
-                width: 50.0,
-                height: 50.0,
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    FlutterFlowTheme.of(context).primary,
-                  ),
-                ),
-              ),
-            ),
-          );
-        }
-        List<AulasRow> salaAulaAulasRowList = snapshot.data!;
+    // Ensure the stream is initialized (cached with ??= so it's safe to use in multiple StreamBuilders)
+    _model.salaAulaSupabaseStream ??= SupaFlow.client
+        .from("Aulas")
+        .stream(primaryKey: ['id'])
+        .eqOrNull(
+          'id',
+          widget!.aulaId,
+        )
+        .map((list) => list.map((item) => AulasRow(item)).toList());
 
-        final salaAulaAulasRow =
-            salaAulaAulasRowList.isNotEmpty ? salaAulaAulasRowList.first : null;
-
-        // Atualiza os controllers do mural com o valor em tempo real do stream
-        final _muralText = salaAulaAulasRow?.muralAula ?? '';
-        if (_model.textController1 != null &&
-            _model.textController1!.text != _muralText) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (_model.textController1 != null &&
-                _model.textController1!.text != _muralText) {
-              _model.textController1!.text = _muralText;
-            }
-          });
-        }
-        if (_model.textController2 != null &&
-            _model.textController2!.text != _muralText) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (_model.textController2 != null &&
-                _model.textController2!.text != _muralText) {
-              _model.textController2!.text = _muralText;
-            }
-          });
-        }
-
-        return GestureDetector(
+    return GestureDetector(
           onTap: () {
             FocusScope.of(context).unfocus();
             FocusManager.instance.primaryFocus?.unfocus();
@@ -166,7 +123,27 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                         enableDrag: false,
                         backgroundColor: Colors.transparent,
                         builder: (bottomSheetContext) {
-                          return PointerInterceptor(
+                          return StreamBuilder<List<AulasRow>>(
+                          stream: _model.salaAulaSupabaseStream,
+                          builder: (context, snapshot) {
+                            List<AulasRow> salaAulaAulasRowList = snapshot.data ?? [];
+                            final salaAulaAulasRow = salaAulaAulasRowList.isNotEmpty
+                                ? salaAulaAulasRowList.first
+                                : null;
+
+                            // Atualiza o controller do mural mobile com o valor em tempo real do stream
+                            final _muralText = salaAulaAulasRow?.muralAula ?? '';
+                            if (_model.textController2 != null &&
+                                _model.textController2!.text != _muralText) {
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (_model.textController2 != null &&
+                                    _model.textController2!.text != _muralText) {
+                                  _model.textController2!.text = _muralText;
+                                }
+                              });
+                            }
+
+                            return PointerInterceptor(
                           child: Container(
                             height: MediaQuery.sizeOf(context).height * 0.55,
                             decoration: BoxDecoration(
@@ -360,6 +337,8 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                             ),
                           ),
                           );
+                          },
+                          );
                         },
                       );
                     },
@@ -475,6 +454,23 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                                 prejoin: true,
                                 lang: 'ptBR',
                                 enableSpaNavigationListeners: false,
+                                onJwtRefreshNeeded: () async {
+                                  final result = await SalaJitsiCall.call(
+                                    sala: widget!.aulaId,
+                                    role: _model.userlog?.firstOrNull?.role,
+                                    token: currentJwtToken,
+                                  );
+                                  if (result.succeeded) {
+                                    final newJwt = SalaJitsiCall.tokenjwt(
+                                      result.jsonBody ?? '',
+                                    );
+                                    if (newJwt != null && newJwt.isNotEmpty) {
+                                      _jwtFixo = newJwt;
+                                      FFAppState().jaasJWT = _jwtFixo;
+                                      safeSetState(() {});
+                                    }
+                                  }
+                                },
                               );
                             },
                           ),
@@ -484,7 +480,27 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                           phone: false,
                           tablet: false,
                         ))
-                          Container(
+                          StreamBuilder<List<AulasRow>>(
+                            stream: _model.salaAulaSupabaseStream,
+                            builder: (context, snapshot) {
+                              List<AulasRow> salaAulaAulasRowList = snapshot.data ?? [];
+                              final salaAulaAulasRow = salaAulaAulasRowList.isNotEmpty
+                                  ? salaAulaAulasRowList.first
+                                  : null;
+
+                              // Atualiza os controllers do mural com o valor em tempo real do stream
+                              final _muralText = salaAulaAulasRow?.muralAula ?? '';
+                              if (_model.textController1 != null &&
+                                  _model.textController1!.text != _muralText) {
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  if (_model.textController1 != null &&
+                                      _model.textController1!.text != _muralText) {
+                                    _model.textController1!.text = _muralText;
+                                  }
+                                });
+                              }
+
+                              return Container(
                             width: 250.0,
                             decoration: BoxDecoration(
                               color: FlutterFlowTheme.of(context)
@@ -897,7 +913,9 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                                   ].divide(SizedBox(height: 12.0)),
                                 ),
                               ),
-                            ),
+                            );
+                            },
+                          ),
                           ],
                         ),
                       ),
@@ -907,7 +925,5 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
           ),
           ),
         );
-      },
-    );
   }
 }

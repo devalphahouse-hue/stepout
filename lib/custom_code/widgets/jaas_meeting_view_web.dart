@@ -22,6 +22,7 @@ class JaasMeetingViewPlatform extends StatefulWidget {
     this.displayName = '',
     this.email = '',
     this.enableSpaNavigationListeners = false,
+    this.onJwtRefreshNeeded,
   });
 
   final double width;
@@ -36,6 +37,7 @@ class JaasMeetingViewPlatform extends StatefulWidget {
   final String displayName;
   final String email;
   final bool enableSpaNavigationListeners;
+  final VoidCallback? onJwtRefreshNeeded;
 
   @override
   State<JaasMeetingViewPlatform> createState() =>
@@ -63,6 +65,12 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
   Timer? _reconnectTimer;
   static const int _maxReconnectAttempts = 5;
 
+  // Renovação automática do JWT antes de expirar
+  Timer? _jwtRefreshTimer;
+
+  // Listener de visibilidade da aba
+  html.EventListener? _visibilityListener;
+
   @override
   void initState() {
     super.initState();
@@ -88,6 +96,15 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
     _messageListener = (event) => _onJaasMessage(event);
     html.window.addEventListener('message', _messageListener!);
 
+    // Detecta quando a aba volta ao foreground para resetar reconexão
+    _visibilityListener = (_) {
+      if (_disposed || _intentionalLeave) return;
+      if (html.document.visibilityState == 'visible') {
+        _reconnectCount = 0;
+      }
+    };
+    html.document.addEventListener('visibilitychange', _visibilityListener!);
+
     if (widget.enableSpaNavigationListeners) {
       _popStateSub = html.window.onPopState.listen((_) => _leaveMeeting());
       _hashChangeSub =
@@ -98,6 +115,52 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
   void _syncRoomKeys() {
     _roomKey = '${widget.appId}__${widget.roomShort}';
     _iframeDomId = 'jaas_iframe_${_roomKey}';
+  }
+
+  /// Decodifica o payload do JWT para extrair o timestamp de expiração (campo `exp`).
+  int? _getJwtExp(String jwt) {
+    try {
+      final parts = jwt.split('.');
+      if (parts.length != 3) return null;
+      String payload = parts[1];
+      switch (payload.length % 4) {
+        case 2:
+          payload += '==';
+          break;
+        case 3:
+          payload += '=';
+          break;
+      }
+      final decoded = utf8.decode(base64Url.decode(payload));
+      final map = json.decode(decoded) as Map<String, dynamic>;
+      return map['exp'] as int?;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Agenda a renovação do JWT 30 minutos antes de expirar.
+  void _scheduleJwtRefresh(String jwt) {
+    _jwtRefreshTimer?.cancel();
+    if (jwt.isEmpty) return;
+
+    final exp = _getJwtExp(jwt);
+    if (exp == null) return;
+
+    final expiresAt = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
+    final refreshAt = expiresAt.subtract(const Duration(minutes: 30));
+    final now = DateTime.now();
+
+    if (refreshAt.isBefore(now)) {
+      widget.onJwtRefreshNeeded?.call();
+      return;
+    }
+
+    final delay = refreshAt.difference(now);
+    _jwtRefreshTimer = Timer(delay, () {
+      if (_disposed) return;
+      widget.onJwtRefreshNeeded?.call();
+    });
   }
 
   /// Processa mensagens postMessage vindas do iframe JaaS/Jitsi.
@@ -191,6 +254,21 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
     if ((roomChanged || jwtBecameAvailable) && _iframe != null) {
       _iframe!.src = _buildSrc();
       _iframeLoaded = true;
+    }
+
+    // JWT foi renovado com um token diferente (refresh antes de expirar)
+    final jwtRefreshed = _iframeLoaded &&
+        widget.jwt.isNotEmpty &&
+        oldWidget.jwt.isNotEmpty &&
+        oldWidget.jwt != widget.jwt;
+
+    if (jwtRefreshed && _iframe != null) {
+      _iframe!.src = _buildSrc();
+      _reconnectCount = 0;
+    }
+
+    if ((jwtBecameAvailable || jwtRefreshed) && widget.jwt.isNotEmpty) {
+      _scheduleJwtRefresh(widget.jwt);
     }
   }
 
@@ -301,6 +379,7 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
   void dispose() {
     _disposed = true;
     _reconnectTimer?.cancel();
+    _jwtRefreshTimer?.cancel();
 
     if (_beforeUnloadListener != null) {
       html.window
@@ -312,6 +391,10 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
 
     _popStateSub?.cancel();
     _hashChangeSub?.cancel();
+
+    if (_visibilityListener != null) {
+      html.document.removeEventListener('visibilitychange', _visibilityListener!);
+    }
 
     _leaveMeeting();
 
