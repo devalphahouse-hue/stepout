@@ -436,43 +436,54 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                             ),
                           ),
                         Expanded(
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              return custom_widgets.JaasMeetingView(
-                                key: _jaasMeetingKey,
-                                width: constraints.maxWidth,
-                                height: constraints.maxHeight,
-                                appId:
-                                    'vpaas-magic-cookie-621aa69dceea45c4b411c688b616a9bb',
-                                roomShort: widget!.aulaId!,
-                                jwt: _jwtFixo,
-                                displayName:
-                                    _model.userlog!.firstOrNull!.nome!,
-                                email: currentUserEmail,
-                                audioMuted: false,
-                                videoMuted: false,
-                                prejoin: true,
-                                lang: 'ptBR',
-                                enableSpaNavigationListeners: false,
-                                onJwtRefreshNeeded: () async {
-                                  final result = await SalaJitsiCall.call(
-                                    sala: widget!.aulaId,
-                                    role: _model.userlog?.firstOrNull?.role,
-                                    token: currentJwtToken,
+                          child: Stack(
+                            children: [
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  return custom_widgets.JaasMeetingView(
+                                    key: _jaasMeetingKey,
+                                    width: constraints.maxWidth,
+                                    height: constraints.maxHeight,
+                                    appId:
+                                        'vpaas-magic-cookie-621aa69dceea45c4b411c688b616a9bb',
+                                    roomShort: widget!.aulaId!,
+                                    jwt: _jwtFixo,
+                                    displayName:
+                                        _model.userlog!.firstOrNull!.nome!,
+                                    email: currentUserEmail,
+                                    audioMuted: false,
+                                    videoMuted: false,
+                                    prejoin: true,
+                                    lang: 'ptBR',
+                                    enableSpaNavigationListeners: false,
+                                    onJwtRefreshNeeded: () async {
+                                      final result = await SalaJitsiCall.call(
+                                        sala: widget!.aulaId,
+                                        role: _model.userlog?.firstOrNull?.role,
+                                        token: currentJwtToken,
+                                      );
+                                      if (result.succeeded) {
+                                        final newJwt = SalaJitsiCall.tokenjwt(
+                                          result.jsonBody ?? '',
+                                        );
+                                        if (newJwt != null && newJwt.isNotEmpty) {
+                                          _jwtFixo = newJwt;
+                                          FFAppState().jaasJWT = _jwtFixo;
+                                          safeSetState(() {});
+                                        }
+                                      }
+                                    },
                                   );
-                                  if (result.succeeded) {
-                                    final newJwt = SalaJitsiCall.tokenjwt(
-                                      result.jsonBody ?? '',
-                                    );
-                                    if (newJwt != null && newJwt.isNotEmpty) {
-                                      _jwtFixo = newJwt;
-                                      FFAppState().jaasJWT = _jwtFixo;
-                                      safeSetState(() {});
-                                    }
-                                  }
                                 },
-                              );
-                            },
+                              ),
+                              Positioned(
+                                top: 8.0,
+                                right: 8.0,
+                                child: PointerInterceptor(
+                                  child: custom_widgets.NetworkStatusIndicator(),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         if (responsiveVisibility(

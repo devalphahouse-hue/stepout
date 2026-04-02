@@ -67,10 +67,11 @@ class StepoutAlunoSupabaseUser extends BaseAuthUser {
 /// user is already authenticated. So we add a default null user to the stream,
 /// if we need to interact with the [currentUser] before logging in.
 Stream<BaseAuthUser> stepoutAlunoSupabaseUserStream() {
-  final supabaseAuthStream = SupaFlow.client.auth.onAuthStateChange.debounce(
-      (authState) => authState.event == AuthChangeEvent.tokenRefreshed
-          ? TimerStream(authState, Duration(seconds: 1))
-          : Stream.value(authState));
+  // Filtra eventos tokenRefreshed para evitar que o GoRouter redirecione
+  // para /login durante aulas. O token é atualizado via jwtTokenStream
+  // em auth_util.dart independentemente.
+  final supabaseAuthStream = SupaFlow.client.auth.onAuthStateChange
+      .where((authState) => authState.event != AuthChangeEvent.tokenRefreshed);
   return (!loggedIn
           ? Stream<AuthState?>.value(null).concatWith([supabaseAuthStream])
           : supabaseAuthStream)

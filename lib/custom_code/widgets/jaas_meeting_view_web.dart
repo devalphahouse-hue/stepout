@@ -63,13 +63,19 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
   bool _intentionalLeave = false;
   int _reconnectCount = 0;
   Timer? _reconnectTimer;
-  static const int _maxReconnectAttempts = 5;
+  static const int _maxReconnectAttempts = 10;
+
+  // Delay antes de forçar reconexão (dá tempo pro Jitsi ICE restart)
+  Timer? _reconnectDelayTimer;
 
   // Renovação automática do JWT antes de expirar
   Timer? _jwtRefreshTimer;
 
   // Listener de visibilidade da aba
   html.EventListener? _visibilityListener;
+
+  // Listener de reconexão automática quando internet volta
+  html.EventListener? _onlineListener;
 
   @override
   void initState() {
@@ -104,6 +110,14 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
       }
     };
     html.document.addEventListener('visibilitychange', _visibilityListener!);
+
+    // Quando internet volta, apenas reseta o contador.
+    // NÃO recarrega o iframe — o Jitsi tenta ICE restart automaticamente.
+    _onlineListener = (_) {
+      if (_disposed || _intentionalLeave) return;
+      _reconnectCount = 0;
+    };
+    html.window.addEventListener('online', _onlineListener!);
 
     if (widget.enableSpaNavigationListeners) {
       _popStateSub = html.window.onPopState.listen((_) => _leaveMeeting());
@@ -193,14 +207,19 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
           eventName == 'videoConferenceLeft' ||
           eventName == 'conference-terminated' ||
           eventName == 'readyToClose') {
-        // Conferência encerrada inesperadamente — tentar reconectar
-        _attemptReconnect();
+        // Dar 15s para o Jitsi tentar ICE restart interno antes de forçar reconexão
+        _reconnectDelayTimer?.cancel();
+        _reconnectDelayTimer = Timer(const Duration(seconds: 15), () {
+          if (_disposed || _intentionalLeave) return;
+          _attemptReconnect();
+        });
       }
 
-      // Resetar contador quando conecta com sucesso
+      // Jitsi se recuperou sozinho (ICE restart funcionou) — cancelar reconexão forçada
       if (eventName == 'video-conference-joined' ||
           eventName == 'videoConferenceJoined') {
         _reconnectCount = 0;
+        _reconnectDelayTimer?.cancel();
       }
     } catch (_) {}
   }
@@ -256,14 +275,15 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
       _iframeLoaded = true;
     }
 
-    // JWT foi renovado com um token diferente (refresh antes de expirar)
+    // JWT foi renovado com um token diferente (refresh antes de expirar).
+    // NÃO recarrega o iframe — o JWT atual continua válido na sessão Jitsi.
+    // O novo JWT será usado automaticamente em caso de reconexão futura.
     final jwtRefreshed = _iframeLoaded &&
         widget.jwt.isNotEmpty &&
         oldWidget.jwt.isNotEmpty &&
         oldWidget.jwt != widget.jwt;
 
-    if (jwtRefreshed && _iframe != null) {
-      _iframe!.src = _buildSrc();
+    if (jwtRefreshed) {
       _reconnectCount = 0;
     }
 
@@ -307,6 +327,7 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
   void _leaveMeeting() {
     _intentionalLeave = true;
     _reconnectTimer?.cancel();
+    _reconnectDelayTimer?.cancel();
 
     try {
       _cleanupOrphanIframesForThisRoom(skip: null);
@@ -364,6 +385,20 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
       'config.defaultLanguage': widget.lang,
       'config.toolbarConfig.alwaysVisible': 'true',
       'config.toolbarConfig.autoHideTimeout': '0',
+      // Estabilidade: desabilita P2P (JVB relay é mais confiável no JaaS)
+      'config.p2p.enabled': 'false',
+      // Habilita ICE restart automático em caso de queda de conexão
+      'config.enableIceRestart': 'true',
+      // Jitsi exibe aviso interno quando não detecta áudio sendo transmitido
+      'config.enableNoAudioDetection': 'true',
+      // Avisa sobre microfone com ruído excessivo
+      'config.enableNoisyMicDetection': 'true',
+      // Limita streams de vídeo recebidos (economiza banda)
+      'config.channelLastN': '4',
+      // Só envia camadas de vídeo que estão sendo assistidas
+      'config.enableLayerSuspension': 'true',
+      // WebSocket é mais confiável que DataChannel para o bridge
+      'config.openBridgeChannel': 'websocket',
       if (widget.displayName.isNotEmpty)
         'userInfo.displayName': widget.displayName,
       if (widget.email.isNotEmpty) 'userInfo.email': widget.email,
@@ -379,6 +414,7 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
   void dispose() {
     _disposed = true;
     _reconnectTimer?.cancel();
+    _reconnectDelayTimer?.cancel();
     _jwtRefreshTimer?.cancel();
 
     if (_beforeUnloadListener != null) {
@@ -394,6 +430,9 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
 
     if (_visibilityListener != null) {
       html.document.removeEventListener('visibilitychange', _visibilityListener!);
+    }
+    if (_onlineListener != null) {
+      html.window.removeEventListener('online', _onlineListener!);
     }
 
     _leaveMeeting();
