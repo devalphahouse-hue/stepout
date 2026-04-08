@@ -421,10 +421,6 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
       // Adaptação automática de qualidade baseada na largura de banda
       'config.enableAdaptiveVideoQuality': 'true',
 
-      // ── Resiliência — recuperação automática ──
-      // Suspende vídeo automaticamente quando detecta problemas de CPU
-      'config.enableSuspendVideoOnCpuThrottling': 'true',
-
       if (widget.displayName.isNotEmpty)
         'userInfo.displayName': widget.displayName,
       if (widget.email.isNotEmpty) 'userInfo.email': widget.email,
