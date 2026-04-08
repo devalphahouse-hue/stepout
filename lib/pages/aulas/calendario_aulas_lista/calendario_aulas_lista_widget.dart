@@ -8,6 +8,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import 'dart:ui';
+import '/custom_code/actions/detect_browser.dart';
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -1124,6 +1125,139 @@ class _CalendarioAulasListaWidgetState
                                                                         FFButtonWidget(
                                                                       onPressed:
                                                                           () async {
+                                                                        final confirmou =
+                                                                            await showDialog<bool>(
+                                                                          context:
+                                                                              context,
+                                                                          barrierDismissible:
+                                                                              false,
+                                                                          builder:
+                                                                              (dialogContext) {
+                                                                            final browserName = detectBrowser();
+                                                                            final isChrome = browserName == 'chrome';
+                                                                            return StatefulBuilder(
+                                                                              builder: (stfContext, setDialogState) {
+                                                                                bool aceitou = false;
+                                                                                return AlertDialog(
+                                                                                  shape: RoundedRectangleBorder(
+                                                                                    borderRadius: BorderRadius.circular(16.0),
+                                                                                  ),
+                                                                                  title: Text(
+                                                                                    'Antes de entrar na aula',
+                                                                                    style: FlutterFlowTheme.of(context).headlineSmall.override(
+                                                                                          font: GoogleFonts.interTight(
+                                                                                            fontWeight: FontWeight.w600,
+                                                                                          ),
+                                                                                          letterSpacing: 0.0,
+                                                                                        ),
+                                                                                  ),
+                                                                                  content: SingleChildScrollView(
+                                                                                    child: Column(
+                                                                                      mainAxisSize: MainAxisSize.min,
+                                                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                      children: [
+                                                                                        if (!isChrome) ...[
+                                                                                          Container(
+                                                                                            width: double.infinity,
+                                                                                            padding: EdgeInsets.all(12.0),
+                                                                                            decoration: BoxDecoration(
+                                                                                              color: Color(0xFFFEE2E2),
+                                                                                              borderRadius: BorderRadius.circular(8.0),
+                                                                                              border: Border.all(color: Color(0xFFFCA5A5)),
+                                                                                            ),
+                                                                                            child: Row(
+                                                                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                              children: [
+                                                                                                Icon(Icons.warning_amber_rounded, color: Color(0xFFDC2626), size: 22),
+                                                                                                SizedBox(width: 8.0),
+                                                                                                Expanded(
+                                                                                                  child: Text(
+                                                                                                    'Voce esta usando ${browserDisplayName(browserName)}. Recomendamos fortemente o Google Chrome para evitar problemas de audio e video durante a aula.',
+                                                                                                    style: FlutterFlowTheme.of(context).bodySmall.override(
+                                                                                                          font: GoogleFonts.inter(fontWeight: FontWeight.w500),
+                                                                                                          color: Color(0xFFDC2626),
+                                                                                                          letterSpacing: 0.0,
+                                                                                                        ),
+                                                                                                  ),
+                                                                                                ),
+                                                                                              ],
+                                                                                            ),
+                                                                                          ),
+                                                                                          SizedBox(height: 16.0),
+                                                                                        ],
+                                                                                        Text(
+                                                                                          'Para garantir a melhor experiencia na aula ao vivo, siga estas dicas:',
+                                                                                          style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                                font: GoogleFonts.inter(
+                                                                                                  fontWeight: FontWeight.normal,
+                                                                                                ),
+                                                                                                letterSpacing: 0.0,
+                                                                                              ),
+                                                                                        ),
+                                                                                        SizedBox(height: 16.0),
+                                                                                        _buildDicaItem(context, '1.', 'Use o Google Chrome — e o navegador mais compativel com a videochamada. Edge, Safari e Firefox podem causar problemas de audio e travamentos'),
+                                                                                        _buildDicaItem(context, '2.', 'Verifique sua internet — abra outro site para confirmar. Conexoes instaveis causam travamento de video e quedas de audio'),
+                                                                                        _buildDicaItem(context, '3.', 'Prefira cabo ou Wi-Fi forte — dados moveis (4G/5G) podem ser instaveis. Se estiver no Wi-Fi, fique proximo ao roteador'),
+                                                                                        _buildDicaItem(context, '4.', 'Feche outros programas e abas — cada aba aberta consome memoria e banda. Feche tudo que nao for essencial'),
+                                                                                        _buildDicaItem(context, '5.', 'Evite computador sobrecarregado — se seu PC estiver lento, reinicie-o antes da aula'),
+                                                                                        _buildDicaItem(context, '6.', 'Teste camera e microfone antes — ao entrar na aula, voce vera uma tela para selecionar e testar seus dispositivos'),
+                                                                                        SizedBox(height: 12.0),
+                                                                                        Row(
+                                                                                          children: [
+                                                                                            SizedBox(
+                                                                                              width: 24,
+                                                                                              height: 24,
+                                                                                              child: Checkbox(
+                                                                                                value: aceitou,
+                                                                                                activeColor: FlutterFlowTheme.of(context).primary,
+                                                                                                onChanged: (v) => setDialogState(() => aceitou = v ?? false),
+                                                                                              ),
+                                                                                            ),
+                                                                                            SizedBox(width: 8.0),
+                                                                                            Expanded(
+                                                                                              child: Text(
+                                                                                                'Li e entendi as recomendacoes',
+                                                                                                style: FlutterFlowTheme.of(context).bodySmall.override(
+                                                                                                      font: GoogleFonts.inter(fontWeight: FontWeight.w500),
+                                                                                                      letterSpacing: 0.0,
+                                                                                                    ),
+                                                                                              ),
+                                                                                            ),
+                                                                                          ],
+                                                                                        ),
+                                                                                      ],
+                                                                                    ),
+                                                                                  ),
+                                                                                  actions: [
+                                                                                    FFButtonWidget(
+                                                                                      onPressed: aceitou ? () => Navigator.of(dialogContext).pop(true) : null,
+                                                                                      text: 'Confirmar e entrar',
+                                                                                      options: FFButtonOptions(
+                                                                                        height: 44.0,
+                                                                                        padding: EdgeInsetsDirectional.fromSTEB(24.0, 0.0, 24.0, 0.0),
+                                                                                        color: aceitou ? FlutterFlowTheme.of(context).primary : Color(0xFFCCCCCC),
+                                                                                        textStyle: FlutterFlowTheme.of(context).titleSmall.override(
+                                                                                              font: GoogleFonts.interTight(
+                                                                                                fontWeight: FlutterFlowTheme.of(context).titleSmall.fontWeight,
+                                                                                              ),
+                                                                                              color: Colors.white,
+                                                                                              letterSpacing: 0.0,
+                                                                                            ),
+                                                                                        elevation: 0.0,
+                                                                                        borderRadius: BorderRadius.circular(20.0),
+                                                                                      ),
+                                                                                    ),
+                                                                                  ],
+                                                                                );
+                                                                              },
+                                                                            );
+                                                                          },
+                                                                        );
+                                                                        if (confirmou !=
+                                                                            true) {
+                                                                          return;
+                                                                        }
+
                                                                         FFAppState().jaasJWT =
                                                                             '';
                                                                         safeSetState(
@@ -1209,6 +1343,34 @@ class _CalendarioAulasListaWidgetState
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildDicaItem(BuildContext context, String numero, String texto) {
+    return Padding(
+      padding: EdgeInsetsDirectional.fromSTEB(0.0, 4.0, 0.0, 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            numero,
+            style: FlutterFlowTheme.of(context).bodyMedium.override(
+                  font: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                  letterSpacing: 0.0,
+                ),
+          ),
+          SizedBox(width: 8.0),
+          Expanded(
+            child: Text(
+              texto,
+              style: FlutterFlowTheme.of(context).bodyMedium.override(
+                    font: GoogleFonts.inter(fontWeight: FontWeight.normal),
+                    letterSpacing: 0.0,
+                  ),
+            ),
+          ),
+        ],
       ),
     );
   }

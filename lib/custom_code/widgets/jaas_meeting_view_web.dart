@@ -379,7 +379,8 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
 
   String _buildFragment() {
     final params = <String, String>{
-      'config.prejoinPageEnabled': widget.prejoin ? 'true' : 'false',
+      // Sempre mostra tela de seleção de mic/câmera antes de entrar
+      'config.prejoinPageEnabled': 'true',
       'config.startWithAudioMuted': widget.audioMuted ? 'true' : 'false',
       'config.startWithVideoMuted': widget.videoMuted ? 'true' : 'false',
       'config.defaultLanguage': widget.lang,
@@ -399,8 +400,8 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
       'config.enableNoAudioDetection': 'true',
       // Desabilitado: reduzia ganho do mic ao detectar ruído ambiente
       'config.enableNoisyMicDetection': 'false',
-      // Desabilita controle automático de ganho (causava áudio baixo)
-      'config.disableAGC': 'true',
+      // AGC ativo: faz boost de mics baixos automaticamente
+      'config.disableAGC': 'false',
       // Codec Opus otimizado: bitrate alto para voz clara
       'config.audioQuality.opusMaxAverageBitrate': '32000',
 
@@ -420,6 +421,12 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
       'config.startBitrate': '800',
       // Adaptação automática de qualidade baseada na largura de banda
       'config.enableAdaptiveVideoQuality': 'true',
+
+      // ── Compatibilidade cross-browser (Edge, Firefox) ──
+      // VP8 é o codec mais compatível entre navegadores
+      'config.preferredCodec': 'VP8',
+      // Unified Plan SDP para compatibilidade com Edge
+      'config.enableUnifiedOnChrome': 'true',
 
       if (widget.displayName.isNotEmpty)
         'userInfo.displayName': widget.displayName,
