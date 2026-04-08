@@ -385,20 +385,46 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
       'config.defaultLanguage': widget.lang,
       'config.toolbarConfig.alwaysVisible': 'true',
       'config.toolbarConfig.autoHideTimeout': '0',
-      // Estabilidade: desabilita P2P (JVB relay é mais confiável no JaaS)
+
+      // ── Rede & Conexão ──
+      // Desabilita P2P — JVB relay é mais confiável no JaaS
       'config.p2p.enabled': 'false',
-      // Habilita ICE restart automático em caso de queda de conexão
+      // ICE restart automático em caso de queda de conexão
       'config.enableIceRestart': 'true',
-      // Jitsi exibe aviso interno quando não detecta áudio sendo transmitido
-      'config.enableNoAudioDetection': 'true',
-      // Avisa sobre microfone com ruído excessivo
-      'config.enableNoisyMicDetection': 'true',
-      // Limita streams de vídeo recebidos (economiza banda)
-      'config.channelLastN': '4',
-      // Só envia camadas de vídeo que estão sendo assistidas
-      'config.enableLayerSuspension': 'true',
       // WebSocket é mais confiável que DataChannel para o bridge
       'config.openBridgeChannel': 'websocket',
+
+      // ── Áudio — processamento robusto sem redução involuntária ──
+      // Detecta quando não há áudio sendo transmitido (aviso útil)
+      'config.enableNoAudioDetection': 'true',
+      // Desabilitado: reduzia ganho do mic ao detectar ruído ambiente
+      'config.enableNoisyMicDetection': 'false',
+      // Desabilita controle automático de ganho (causava áudio baixo)
+      'config.disableAGC': 'true',
+      // Codec Opus otimizado: bitrate alto para voz clara
+      'config.audioQuality.opusMaxAverageBitrate': '32000',
+
+      // ── Vídeo — degradação suave como o Meet ──
+      // Resolução ideal 720p, mínimo 180p em rede ruim
+      'config.resolution': '720',
+      'config.constraints.video.height.ideal': '720',
+      'config.constraints.video.height.max': '720',
+      'config.constraints.video.height.min': '180',
+      // Simulcast: envia múltiplas qualidades, servidor escolhe a melhor
+      'config.enableSimulcast': 'true',
+      // Suspende camadas de vídeo não assistidas (economiza banda)
+      'config.enableLayerSuspension': 'true',
+      // Limita streams de vídeo recebidos
+      'config.channelLastN': '4',
+      // Bitrate inicial baixo — sobe conforme rede permite (como o Meet)
+      'config.startBitrate': '800',
+      // Adaptação automática de qualidade baseada na largura de banda
+      'config.enableAdaptiveVideoQuality': 'true',
+
+      // ── Resiliência — recuperação automática ──
+      // Suspende vídeo automaticamente quando detecta problemas de CPU
+      'config.enableSuspendVideoOnCpuThrottling': 'true',
+
       if (widget.displayName.isNotEmpty)
         'userInfo.displayName': widget.displayName,
       if (widget.email.isNotEmpty) 'userInfo.email': widget.email,

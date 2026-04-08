@@ -80,6 +80,26 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
         "startWithVideoMuted": widget.videoMuted,
         "prejoinPageEnabled": widget.prejoin,
         "defaultLanguage": widget.lang,
+        // Áudio — sem redução involuntária de volume
+        "enableNoisyMicDetection": false,
+        "disableAGC": true,
+        "enableNoAudioDetection": true,
+        "audioQuality": {"opusMaxAverageBitrate": 32000},
+        // Vídeo — degradação suave em rede ruim
+        "resolution": 720,
+        "constraints": {
+          "video": {
+            "height": {"ideal": 720, "max": 720, "min": 180}
+          }
+        },
+        "enableSimulcast": true,
+        "enableLayerSuspension": true,
+        "channelLastN": 4,
+        "startBitrate": 800,
+        // Rede & resiliência
+        "p2p": {"enabled": false},
+        "enableIceRestart": true,
+        "openBridgeChannel": "websocket",
       },
       featureFlags: {
         "unsaferoomwarning.enabled": false,
