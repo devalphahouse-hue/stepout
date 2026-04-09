@@ -11,15 +11,10 @@ Future<Map<String, dynamic>> makeCloudCall(
     return response.data is Map
         ? Map<String, dynamic>.from(response.data as Map)
         : {};
-  } on FirebaseFunctionsException catch (e) {
-    print(
-      'Cloud call error!\n ${callName}'
-      'Code: ${e.code}\n'
-      'Details: ${e.details}\n'
-      'Message: ${e.message}',
-    );
-  } catch (e) {
-    print('Cloud call error:${callName} $e');
+  } on FirebaseFunctionsException catch (_) {
+    // Cloud function error silenciado em produção
+  } catch (_) {
+    // Cloud call error silenciado em produção
   }
   return {};
 }

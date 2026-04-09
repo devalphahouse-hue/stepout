@@ -60,7 +60,7 @@ class SignupCall {
     final ffApiRequestBody = '''
 {
   "email": "${escapeStringForJson(email)}",
-  "password": "123456"
+  "password": "${escapeStringForJson(senha)}"
 }''';
     return ApiManager.instance.makeApiCall(
       callName: 'Signup',

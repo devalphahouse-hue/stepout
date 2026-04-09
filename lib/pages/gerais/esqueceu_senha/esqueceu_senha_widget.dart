@@ -527,7 +527,7 @@ class _EsqueceuSenhaWidgetState extends State<EsqueceuSenhaWidget> {
                                             ),
                                             FFButtonWidget(
                                               onPressed: () {
-                                                print('Button pressed ...');
+                                                // TODO: implementar ação
                                               },
                                               text: '+ Saiba mais',
                                               options: FFButtonOptions(

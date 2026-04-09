@@ -85,7 +85,7 @@ String? serializeParam(
     }
     return data;
   } catch (e) {
-    print('Error serializing parameter: $e');
+    // Serialization error silenciado em produção
     return null;
   }
 }
@@ -268,7 +268,7 @@ dynamic deserializeParam<T>(
         return null;
     }
   } catch (e) {
-    print('Error deserializing parameter: $e');
+    // Deserialization error silenciado em produção
     return null;
   }
 }
