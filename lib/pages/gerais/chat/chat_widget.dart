@@ -897,6 +897,12 @@ class _ChatWidgetState extends State<ChatWidget> {
                           ),
                           builder: (context, snapshot) {
                             // Customize what your widget looks like when it's loading.
+                            if (snapshot.hasError) {
+                              return Center(
+                                child: Text('Erro ao carregar dados.',
+                                    style: FlutterFlowTheme.of(context).bodyMedium),
+                              );
+                            }
                             if (!snapshot.hasData) {
                               return Center(
                                 child: SizedBox(
@@ -1044,6 +1050,12 @@ class _ChatWidgetState extends State<ChatWidget> {
                               .future,
                           builder: (context, snapshot) {
                             // Customize what your widget looks like when it's loading.
+                            if (snapshot.hasError) {
+                              return Center(
+                                child: Text('Erro ao carregar dados.',
+                                    style: FlutterFlowTheme.of(context).bodyMedium),
+                              );
+                            }
                             if (!snapshot.hasData) {
                               return Center(
                                 child: SizedBox(
@@ -1545,7 +1557,7 @@ class _ChatWidgetState extends State<ChatWidget> {
                                                                           .network(
                                                                         (rowListaChatsAbertosResponse.jsonBody.toList().map<ChatAtivoStruct?>(ChatAtivoStruct.maybeFromMap).toList() as Iterable<ChatAtivoStruct?>).withoutNulls?.where((e) => e.chatId == FFAppState().chatId).toList()?.firstOrNull?.otherUser?.imagemPerfil != null &&
                                                                                 (rowListaChatsAbertosResponse.jsonBody.toList().map<ChatAtivoStruct?>(ChatAtivoStruct.maybeFromMap).toList() as Iterable<ChatAtivoStruct?>).withoutNulls?.where((e) => e.chatId == FFAppState().chatId).toList()?.firstOrNull?.otherUser?.imagemPerfil != ''
-                                                                            ? (rowListaChatsAbertosResponse.jsonBody.toList().map<ChatAtivoStruct?>(ChatAtivoStruct.maybeFromMap).toList() as Iterable<ChatAtivoStruct?>).withoutNulls.where((e) => e.chatId == FFAppState().chatId).toList().firstOrNull!.otherUser.imagemPerfil
+                                                                            ? (rowListaChatsAbertosResponse.jsonBody.toList().map<ChatAtivoStruct?>(ChatAtivoStruct.maybeFromMap).toList() as Iterable<ChatAtivoStruct?>).withoutNulls.where((e) => e.chatId == FFAppState().chatId).toList().firstOrNull?.otherUser.imagemPerfil ?? 'https://qmfitknztvxvzpgjyvxf.supabase.co/storage/v1/object/public/geral/Ellipse%2051.png'
                                                                             : 'https://qmfitknztvxvzpgjyvxf.supabase.co/storage/v1/object/public/geral/Ellipse%2051.png',
                                                                       ).image,
                                                                     ),
@@ -2166,9 +2178,9 @@ class _ChatWidgetState extends State<ChatWidget> {
                                                                               .withoutNulls
                                                                               .where((e) => e.chatId == FFAppState().chatId)
                                                                               .toList()
-                                                                              .firstOrNull!
-                                                                              .otherUser
-                                                                              .imagemPerfil
+                                                                              .firstOrNull
+                                                                              ?.otherUser
+                                                                              .imagemPerfil ?? 'https://qmfitknztvxvzpgjyvxf.supabase.co/storage/v1/object/public/geral/Ellipse%2051.png'
                                                                           : 'https://qmfitknztvxvzpgjyvxf.supabase.co/storage/v1/object/public/geral/Ellipse%2051.png',
                                                                     ).image,
                                                                   ),

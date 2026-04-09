@@ -251,6 +251,12 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                                                 queryFn: (q) => q.eqOrNull('id', conteudoId),
                                               ),
                                               builder: (context, snapshot) {
+                                                if (snapshot.hasError) {
+                                                  return Center(
+                                                    child: Text('Erro ao carregar dados.',
+                                                        style: FlutterFlowTheme.of(context).bodyMedium),
+                                                  );
+                                                }
                                                 if (!snapshot.hasData) {
                                                   return Padding(
                                                     padding: EdgeInsets.symmetric(vertical: 4.0),

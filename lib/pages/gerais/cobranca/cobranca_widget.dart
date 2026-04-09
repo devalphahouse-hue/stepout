@@ -119,6 +119,15 @@ class _CobrancaWidgetState extends State<CobrancaWidget> {
           .future,
       builder: (context, snapshot) {
         // Customize what your widget looks like when it's loading.
+        if (snapshot.hasError) {
+          return Scaffold(
+            backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
+            body: Center(
+              child: Text('Erro ao carregar dados.',
+                  style: FlutterFlowTheme.of(context).bodyMedium),
+            ),
+          );
+        }
         if (!snapshot.hasData) {
           return Scaffold(
             backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
@@ -167,6 +176,12 @@ class _CobrancaWidgetState extends State<CobrancaWidget> {
                       ),
                       builder: (context, snapshot) {
                         // Customize what your widget looks like when it's loading.
+                        if (snapshot.hasError) {
+                          return Center(
+                            child: Text('Erro ao carregar dados.',
+                                style: FlutterFlowTheme.of(context).bodyMedium),
+                          );
+                        }
                         if (!snapshot.hasData) {
                           return Center(
                             child: SizedBox(
@@ -1249,7 +1264,7 @@ class _CobrancaWidgetState extends State<CobrancaWidget> {
                                                                                 cep: _model.textFieldCEPTextController1.text,
                                                                               );
 
-                                                                              if ((_model.resultCEP?.succeeded ?? true)) {
+                                                                              if ((_model.resultCEP?.succeeded ?? false)) {
                                                                                 safeSetState(() {
                                                                                   _model.textFieldPaisTextController1?.text = 'Brasil';
                                                                                 });
@@ -2208,7 +2223,7 @@ class _CobrancaWidgetState extends State<CobrancaWidget> {
                                                                                 cep: _model.textFieldCEPTextController2.text,
                                                                               );
 
-                                                                              if ((_model.resultCEP2?.succeeded ?? true)) {
+                                                                              if ((_model.resultCEP2?.succeeded ?? false)) {
                                                                                 safeSetState(() {
                                                                                   _model.textFieldPaisTextController2?.text = 'Brasil';
                                                                                 });
