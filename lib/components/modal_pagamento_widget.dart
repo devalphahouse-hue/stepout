@@ -6,6 +6,7 @@ import 'dart:ui';
 import '/flutter_flow/custom_functions.dart' as functions;
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'modal_pagamento_model.dart';
@@ -305,9 +306,10 @@ class _ModalPagamentoWidgetState extends State<ModalPagamentoWidget> {
                       thickness: 0.5,
                       color: FlutterFlowTheme.of(context).alternate,
                     ),
-                    Row(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
+                    Builder(
+                      builder: (context) {
+                        final isMobile = MediaQuery.sizeOf(context).width < kBreakpointSmall;
+                        final children = [
                         Expanded(
                           child: Container(
                             width: 100.0,
@@ -350,13 +352,9 @@ class _ModalPagamentoWidgetState extends State<ModalPagamentoWidget> {
                                         ),
                                   ),
                                   Text(
-                                    'R\$ ${valueOrDefault<String>(
-                                      getJsonField(
-                                        widget!.items,
-                                        r'''$.valor''',
-                                      )?.toString(),
-                                      '00,00',
-                                    )}',
+                                    NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$ ').format(
+                                      double.tryParse(getJsonField(widget!.items, r'''$.valor''')?.toString() ?? '0') ?? 0,
+                                    ),
                                     style: FlutterFlowTheme.of(context)
                                         .headlineMedium
                                         .override(
@@ -436,19 +434,10 @@ class _ModalPagamentoWidgetState extends State<ModalPagamentoWidget> {
                                         ),
                                   ),
                                   Text(
-                                    'R\$ ${getJsonField(
-                                          widget!.items,
-                                          r'''$.valor_parcelas''',
-                                        ) != null ? getJsonField(
-                                        widget!.items,
-                                        r'''$.valor_parcelas''',
-                                      ).toString() : valueOrDefault<String>(
-                                        getJsonField(
-                                          widget!.items,
-                                          r'''$.valor''',
-                                        )?.toString(),
-                                        '00,00',
-                                      )}',
+                                    NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$ ').format(
+                                      double.tryParse((getJsonField(widget!.items, r'''$.valor_parcelas''') ??
+                                          getJsonField(widget!.items, r'''$.valor''') ?? 0).toString()) ?? 0,
+                                    ),
                                     style: FlutterFlowTheme.of(context)
                                         .headlineMedium
                                         .override(
@@ -480,15 +469,29 @@ class _ModalPagamentoWidgetState extends State<ModalPagamentoWidget> {
                             ),
                           ),
                         ),
-                      ].divide(SizedBox(width: 20.0)),
+                        ];
+                        return isMobile
+                            ? Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: children.map((c) {
+                                  if (c is Expanded) return c.child;
+                                  return c;
+                                }).toList().cast<Widget>()..insert(1, SizedBox(height: 12.0)),
+                              )
+                            : Row(
+                                mainAxisSize: MainAxisSize.max,
+                                children: children,
+                              );
+                      },
                     ),
                     Divider(
                       thickness: 0.5,
                       color: FlutterFlowTheme.of(context).alternate,
                     ),
-                    Row(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
+                    Builder(
+                      builder: (context) {
+                        final isMobile = MediaQuery.sizeOf(context).width < kBreakpointSmall;
+                        final children = [
                         Expanded(
                           child: Column(
                             mainAxisSize: MainAxisSize.max,
@@ -631,11 +634,26 @@ class _ModalPagamentoWidgetState extends State<ModalPagamentoWidget> {
                             ].divide(SizedBox(height: 8.0)),
                           ),
                         ),
-                      ].divide(SizedBox(width: 20.0)),
+                        ];
+                        return isMobile
+                            ? Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: children.map((c) {
+                                  if (c is Expanded) return c.child;
+                                  return c;
+                                }).toList().cast<Widget>()..insert(1, SizedBox(height: 12.0)),
+                              )
+                            : Row(
+                                mainAxisSize: MainAxisSize.max,
+                                children: children,
+                              );
+                      },
                     ),
-                    Row(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
+                    Builder(
+                      builder: (context) {
+                        final isMobile = MediaQuery.sizeOf(context).width < kBreakpointSmall;
+                        final children = [
                         Expanded(
                           child: Column(
                             mainAxisSize: MainAxisSize.max,
@@ -781,7 +799,21 @@ class _ModalPagamentoWidgetState extends State<ModalPagamentoWidget> {
                             ].divide(SizedBox(height: 8.0)),
                           ),
                         ),
-                      ].divide(SizedBox(width: 20.0)),
+                        ];
+                        return isMobile
+                            ? Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: children.map((c) {
+                                  if (c is Expanded) return c.child;
+                                  return c;
+                                }).toList().cast<Widget>()..insert(1, SizedBox(height: 12.0)),
+                              )
+                            : Row(
+                                mainAxisSize: MainAxisSize.max,
+                                children: children,
+                              );
+                      },
                     ),
                     Divider(
                       thickness: 0.5,

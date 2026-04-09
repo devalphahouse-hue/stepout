@@ -1135,9 +1135,9 @@ class _CalendarioAulasListaWidgetState
                                                                               (dialogContext) {
                                                                             final browserName = detectBrowser();
                                                                             final isChrome = browserName == 'chrome';
+                                                                            bool aceitou = false;
                                                                             return StatefulBuilder(
                                                                               builder: (stfContext, setDialogState) {
-                                                                                bool aceitou = false;
                                                                                 return AlertDialog(
                                                                                   shape: RoundedRectangleBorder(
                                                                                     borderRadius: BorderRadius.circular(16.0),

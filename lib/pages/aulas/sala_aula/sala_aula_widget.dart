@@ -108,6 +108,7 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
           child: Scaffold(
             key: scaffoldKey,
             backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
+            floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
             floatingActionButton: responsiveVisibility(
               context: context,
               tabletLandscape: false,

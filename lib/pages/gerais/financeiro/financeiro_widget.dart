@@ -1191,15 +1191,17 @@ class _FinanceiroWidgetState extends State<FinanceiroWidget> {
                                                   child: Padding(
                                                     padding:
                                                         EdgeInsets.all(12.0),
-                                                    child: Row(
+                                                    child: SingleChildScrollView(
+                                                      scrollDirection: Axis.horizontal,
+                                                      child: Row(
                                                       mainAxisSize:
                                                           MainAxisSize.max,
                                                       mainAxisAlignment:
                                                           MainAxisAlignment
                                                               .spaceBetween,
                                                       children: [
-                                                        Expanded(
-                                                          child: Container(
+                                                        Container(
+                                                          width: MediaQuery.sizeOf(context).width * 0.6,
                                                           decoration:
                                                               BoxDecoration(),
                                                           child: Row(
@@ -1314,8 +1316,8 @@ class _FinanceiroWidgetState extends State<FinanceiroWidget> {
                                                                 width: 12.0)),
                                                           ),
                                                         ),
-                                                        ),
                                                       ],
+                                                    ),
                                                     ),
                                                   ),
                                                 ),
