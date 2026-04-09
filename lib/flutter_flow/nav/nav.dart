@@ -388,6 +388,21 @@ class FFRoute {
             if (currentSession != null && !currentSession.isExpired) {
               return null;
             }
+
+            // Protege a SalaAula contra redirect durante flutuações temporárias
+            // de auth (token refresh storms, race conditions de sessão).
+            // O usuário só chega em /salaAula após autenticação bem-sucedida,
+            // então se initiallyLoggedIn é true e ainda existe um currentUser
+            // no Supabase, é uma flutuação temporária — não um logout real.
+            // Destruir a videochamada por um glitch de auth é inaceitável.
+            final currentPath = state.uri.toString();
+            if (currentPath.startsWith('/salaAula') &&
+                appStateNotifier.initiallyLoggedIn) {
+              // Tenta recuperar a sessão silenciosamente em vez de redirecionar.
+              SupaFlow.client.auth.refreshSession().ignore();
+              return null;
+            }
+
             appStateNotifier.setRedirectLocationIfUnset(state.uri.toString());
             return '/login';
           }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:rxdart/rxdart.dart';
 
 import '/backend/supabase/supabase.dart';
@@ -46,19 +48,33 @@ class StepoutAlunoSupabaseUser extends BaseAuthUser {
 
   @override
   bool get emailVerified {
-    // Reloads the user when checking in order to get the most up to date
-    // email verified status.
-    if (loggedIn && user!.emailConfirmedAt == null) {
-      refreshUser();
-    }
+    // Não chama refreshSession() aqui — era a causa de token refresh storms.
+    // O SDK do Supabase já faz auto-refresh. Verificar emailConfirmedAt apenas
+    // com o valor em cache evita chamadas concorrentes que corrompem o refresh token.
     return user?.emailConfirmedAt != null;
   }
 
+  /// Mutex para garantir que apenas um refreshSession() rode por vez.
+  /// Evita race condition onde múltiplos refreshes simultâneos rotacionam
+  /// o refresh token e invalidam as outras chamadas.
+  static Completer<void>? _refreshCompleter;
+
   @override
   Future refreshUser() async {
-    await SupaFlow.client.auth
-        .refreshSession()
-        .then((_) => user = SupaFlow.client.auth.currentUser);
+    // Se já tem um refresh em andamento, espera ele terminar em vez de duplicar.
+    if (_refreshCompleter != null && !_refreshCompleter!.isCompleted) {
+      await _refreshCompleter!.future;
+      user = SupaFlow.client.auth.currentUser;
+      return;
+    }
+
+    _refreshCompleter = Completer<void>();
+    try {
+      await SupaFlow.client.auth.refreshSession();
+      user = SupaFlow.client.auth.currentUser;
+    } finally {
+      _refreshCompleter!.complete();
+    }
   }
 }
 
