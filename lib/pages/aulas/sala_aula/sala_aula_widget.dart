@@ -34,9 +34,58 @@ class SalaAulaWidget extends StatefulWidget {
 class _SalaAulaWidgetState extends State<SalaAulaWidget> {
   late SalaAulaModel _model;
   String _jwtFixo = '';
+  String _jwtError = '';
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
   final _jaasMeetingKey = GlobalKey();
+
+  Future<void> _loadJitsiToken() async {
+    _jwtError = '';
+    safeSetState(() {});
+
+    final aulaId = widget.aulaId;
+    if (aulaId == null || aulaId.isEmpty) {
+      _jwtError = 'ID da aula não informado.';
+      safeSetState(() {});
+      return;
+    }
+
+    try {
+      final parallelResults = await Future.wait([
+        UsersTable().queryRows(
+          queryFn: (q) => q.eqOrNull('id', currentUserUid),
+        ),
+        AulasTable().queryRows(
+          queryFn: (q) => q.eqOrNull('id', aulaId),
+        ),
+      ]);
+      _model.userlog = parallelResults[0] as List<UsersRow>;
+      _model.aulatual = parallelResults[1] as List<AulasRow>;
+      _model.apiResulti7f = await SalaJitsiCall.call(
+        sala: _model.aulatual?.firstOrNull?.id,
+        role: _model.userlog?.firstOrNull?.role,
+        token: currentJwtToken,
+      );
+
+      if ((_model.apiResulti7f?.succeeded ?? false)) {
+        final jwt = SalaJitsiCall.tokenjwt(
+          (_model.apiResulti7f?.jsonBody ?? ''),
+        );
+        if (jwt != null && jwt.isNotEmpty) {
+          _jwtFixo = jwt;
+          _jwtError = '';
+          FFAppState().jaasJWT = _jwtFixo;
+          safeSetState(() {});
+          return;
+        }
+      }
+      _jwtError = 'Não foi possível conectar à sala. Tente novamente.';
+      safeSetState(() {});
+    } catch (e) {
+      _jwtError = 'Erro de conexão. Verifique sua internet e tente novamente.';
+      safeSetState(() {});
+    }
+  }
 
   @override
   void initState() {
@@ -45,31 +94,7 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
-      _model.userlog = await UsersTable().queryRows(
-        queryFn: (q) => q.eqOrNull(
-          'id',
-          currentUserUid,
-        ),
-      );
-      _model.aulatual = await AulasTable().queryRows(
-        queryFn: (q) => q.eqOrNull(
-          'id',
-          widget!.aulaId,
-        ),
-      );
-      _model.apiResulti7f = await SalaJitsiCall.call(
-        sala: _model.aulatual?.firstOrNull?.id,
-        role: _model.userlog?.firstOrNull?.role,
-        token: currentJwtToken,
-      );
-
-      if ((_model.apiResulti7f?.succeeded ?? true)) {
-        _jwtFixo = SalaJitsiCall.tokenjwt(
-          (_model.apiResulti7f?.jsonBody ?? ''),
-        )!;
-        FFAppState().jaasJWT = _jwtFixo;
-        safeSetState(() {});
-      }
+      await _loadJitsiToken();
     });
 
     _model.textController1 ??= TextEditingController();
@@ -439,6 +464,40 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                         Expanded(
                           child: Stack(
                             children: [
+                              if (_jwtError.isNotEmpty)
+                                Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.videocam_off,
+                                          size: 64,
+                                          color: FlutterFlowTheme.of(context).secondaryText),
+                                      SizedBox(height: 16),
+                                      Text(_jwtError,
+                                          style: FlutterFlowTheme.of(context).bodyMedium,
+                                          textAlign: TextAlign.center),
+                                      SizedBox(height: 16),
+                                      FFButtonWidget(
+                                        onPressed: () async {
+                                          await _loadJitsiToken();
+                                        },
+                                        text: 'Tentar novamente',
+                                        options: FFButtonOptions(
+                                          height: 40,
+                                          padding: EdgeInsetsDirectional.fromSTEB(24, 0, 24, 0),
+                                          color: FlutterFlowTheme.of(context).primary,
+                                          textStyle: FlutterFlowTheme.of(context).titleSmall.override(
+                                                font: GoogleFonts.inter(),
+                                                color: Colors.white,
+                                                letterSpacing: 0.0,
+                                              ),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              else
                               LayoutBuilder(
                                 builder: (context, constraints) {
                                   return custom_widgets.JaasMeetingView(
@@ -447,10 +506,10 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                                     height: constraints.maxHeight,
                                     appId:
                                         'vpaas-magic-cookie-621aa69dceea45c4b411c688b616a9bb',
-                                    roomShort: widget!.aulaId!,
+                                    roomShort: widget.aulaId ?? '',
                                     jwt: _jwtFixo,
                                     displayName:
-                                        _model.userlog!.firstOrNull!.nome!,
+                                        _model.userlog?.firstOrNull?.nome ?? '',
                                     email: currentUserEmail,
                                     audioMuted: false,
                                     videoMuted: false,
@@ -459,7 +518,7 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                                     enableSpaNavigationListeners: false,
                                     onJwtRefreshNeeded: () async {
                                       final result = await SalaJitsiCall.call(
-                                        sala: widget!.aulaId,
+                                        sala: widget.aulaId,
                                         role: _model.userlog?.firstOrNull?.role,
                                         token: currentJwtToken,
                                       );
