@@ -14,8 +14,8 @@ class MobileWebGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!kIsWeb) return child;
-
-    return MobileWebGatePlatform(child: child);
+    // TEMP: trava de mobile-web desativada para testes responsivos.
+    // Para reativar, restaure: return kIsWeb ? MobileWebGatePlatform(child: child) : child;
+    return child;
   }
 }

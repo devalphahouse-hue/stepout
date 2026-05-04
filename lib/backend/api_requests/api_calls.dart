@@ -514,6 +514,9 @@ class FiltroCobrancaCall {
     String? pTipoCobranca = '',
     String? pSearch = '',
     String? pUserId = '',
+    String? pIfFranquia = '',
+    int? pPage = 1,
+    int? pPerPage = 10,
     String? token = '',
   }) async {
     final baseUrl = SupabaseGroup.getBaseUrl(
@@ -534,6 +537,9 @@ class FiltroCobrancaCall {
         'p_search': pSearch,
         'p_tipo_cobranca': pTipoCobranca,
         'p_user_id': pUserId,
+        'p_if_franquia': pIfFranquia,
+        'p_page': pPage,
+        'p_per_page': pPerPage,
       },
       returnBody: true,
       encodeBodyUtf8: false,
@@ -705,6 +711,7 @@ class GETStatusPixCall {
 
 class CriarCobrancaCartaoComSplitCall {
   Future<ApiCallResponse> call({
+    String? idcobranca = '',
     String? clienteid = '',
     double? valortotal,
     String? datacobranca = '',
@@ -734,6 +741,7 @@ class CriarCobrancaCartaoComSplitCall {
       {
         'callName': 'CriarCobrancaCartaoComSplitCall',
         'variables': {
+          'idcobranca': idcobranca,
           'clienteid': clienteid,
           'valortotal': valortotal,
           'datacobranca': datacobranca,
@@ -783,6 +791,7 @@ class CriarCobrancaCartaoComSplitCall {
 
 class CriarCobrancaCartaoSemSplitCall {
   Future<ApiCallResponse> call({
+    String? idcobranca = '',
     String? clienteid = '',
     double? valortotal,
     String? datacobranca = '',
@@ -812,6 +821,7 @@ class CriarCobrancaCartaoSemSplitCall {
       {
         'callName': 'CriarCobrancaCartaoSemSplitCall',
         'variables': {
+          'idcobranca': idcobranca,
           'clienteid': clienteid,
           'valortotal': valortotal,
           'datacobranca': datacobranca,
@@ -861,6 +871,7 @@ class CriarCobrancaCartaoSemSplitCall {
 
 class CriarCobrancaPixComSplitCall {
   Future<ApiCallResponse> call({
+    String? idcobranca = '',
     String? clienteid = '',
     double? valortotal,
     String? datacobranca = '',
@@ -874,6 +885,7 @@ class CriarCobrancaPixComSplitCall {
       {
         'callName': 'CriarCobrancaPixComSplitCall',
         'variables': {
+          'idcobranca': idcobranca,
           'clienteid': clienteid,
           'valortotal': valortotal,
           'datacobranca': datacobranca,
@@ -903,6 +915,7 @@ class CriarCobrancaPixComSplitCall {
 
 class CriarCobrancaPixSemSplitCall {
   Future<ApiCallResponse> call({
+    String? idcobranca = '',
     String? clienteid = '',
     double? valortotal,
     String? datacobranca = '',
@@ -916,6 +929,7 @@ class CriarCobrancaPixSemSplitCall {
       {
         'callName': 'CriarCobrancaPixSemSplitCall',
         'variables': {
+          'idcobranca': idcobranca,
           'clienteid': clienteid,
           'valortotal': valortotal,
           'datacobranca': datacobranca,

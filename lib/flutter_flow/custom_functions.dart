@@ -153,3 +153,73 @@ String normalizacaoUTC() {
   DateTime now = DateTime.now().toUtc(); // Get current time in UTC
   return DateFormat('yyyy-MM-dd').format(now); // Format to YYYY-MM-DD
 }
+
+String formatCurrencyBr(dynamic value) {
+  if (value == null) return 'R\$ 0,00';
+  num? n = value is num ? value : num.tryParse(value.toString());
+  if (n == null) return 'R\$ 0,00';
+  final f = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
+  return f.format(n);
+}
+
+String cobrancaStatusLabel(String? status) {
+  final s = (status ?? '').toUpperCase().trim();
+  if (s.isEmpty) return 'Pendente';
+  if (['CONFIRMED', 'RECEIVED', 'PAID', 'PAGO', 'RECEIVED_IN_CASH'].contains(s))
+    return 'Paga';
+  if (['OVERDUE', 'ATRASADO', 'ATRASADA'].contains(s)) return 'Atrasada';
+  if (['CANCELLED', 'CANCELADA', 'CANCELADO', 'REFUNDED', 'CHARGEBACK']
+      .contains(s)) return 'Cancelada';
+  if (['PENDING', 'AGUARDANDO', 'AWAITING_PAYMENT'].contains(s))
+    return 'Pendente';
+  return 'Pendente';
+}
+
+Color cobrancaStatusColorBg(String? status) {
+  final label = cobrancaStatusLabel(status);
+  if (label == 'Paga') return const Color(0xFFE6F4EA);
+  if (label == 'Atrasada') return const Color(0xFFFCE8E8);
+  if (label == 'Cancelada') return const Color(0xFFEEEEEE);
+  return const Color(0xFFFFF4D6); // Pendente
+}
+
+Color cobrancaStatusColorFg(String? status) {
+  final label = cobrancaStatusLabel(status);
+  if (label == 'Paga') return const Color(0xFF1E7E34);
+  if (label == 'Atrasada') return const Color(0xFFB00020);
+  if (label == 'Cancelada') return const Color(0xFF616161);
+  return const Color(0xFF8A6D00); // Pendente
+}
+
+String shortIdFallback(String? asaasId, String? internalId) {
+  if (asaasId != null && asaasId.isNotEmpty) return asaasId;
+  if (internalId == null || internalId.isEmpty) return '—';
+  return '#${internalId.substring(0, internalId.length >= 8 ? 8 : internalId.length)}';
+}
+
+List<dynamic> sortCobrancasByDateDesc(List<dynamic>? list) {
+  if (list == null) return <dynamic>[];
+  final copy = List<dynamic>.from(list);
+  copy.sort((a, b) {
+    final ad = (a is Map ? a['created_at'] : null)?.toString() ?? '';
+    final bd = (b is Map ? b['created_at'] : null)?.toString() ?? '';
+    return bd.compareTo(ad);
+  });
+  return copy;
+}
+
+String sumCobrancasValor(List<dynamic>? list) {
+  if (list == null || list.isEmpty) return formatCurrencyBr(0);
+  num total = 0;
+  for (final item in list) {
+    if (item is Map) {
+      final v = item['valor'];
+      if (v is num) total += v;
+      else if (v != null) {
+        final p = num.tryParse(v.toString());
+        if (p != null) total += p;
+      }
+    }
+  }
+  return formatCurrencyBr(total);
+}

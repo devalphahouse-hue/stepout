@@ -633,6 +633,7 @@ class _CheckoutWidgetState extends State<CheckoutWidget> {
                                                               await AsaasGroup
                                                                   .criarCobrancaPixComSplitCall
                                                                   .call(
+                                                            idcobranca: widget!.idcobranca,
                                                             clienteid: FFAppState()
                                                                 .pagamentoCobranca
                                                                 .idClienteAsaas,
@@ -760,6 +761,7 @@ class _CheckoutWidgetState extends State<CheckoutWidget> {
                                                               await AsaasGroup
                                                                   .criarCobrancaPixSemSplitCall
                                                                   .call(
+                                                            idcobranca: widget!.idcobranca,
                                                             clienteid: FFAppState()
                                                                 .pagamentoCobranca
                                                                 .idClienteAsaas,
@@ -2572,6 +2574,7 @@ class _CheckoutWidgetState extends State<CheckoutWidget> {
                                                             await AsaasGroup
                                                                 .criarCobrancaCartaoComSplitCall
                                                                 .call(
+                                                          idcobranca: widget!.idcobranca,
                                                           clienteid: FFAppState()
                                                               .pagamentoCobranca
                                                               .idClienteAsaas,
@@ -2763,6 +2766,7 @@ class _CheckoutWidgetState extends State<CheckoutWidget> {
                                                             await AsaasGroup
                                                                 .criarCobrancaCartaoSemSplitCall
                                                                 .call(
+                                                          idcobranca: widget!.idcobranca,
                                                           clienteid: FFAppState()
                                                               .pagamentoCobranca
                                                               .idClienteAsaas,

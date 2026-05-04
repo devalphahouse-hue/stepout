@@ -141,14 +141,36 @@ class SupabaseAuthManager extends AuthManager with EmailSignInManager {
       }
       return authUser;
     } on AuthException catch (e) {
-      final errorMsg = e.message.contains('User already registered')
-          ? 'Error: The email is already in use by a different account'
-          : 'Error: ${e.message!}';
+      final errorMsg = _translateAuthError(e.message);
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(errorMsg)),
       );
       return null;
     }
+  }
+
+  String _translateAuthError(String? message) {
+    final raw = (message ?? '').toLowerCase();
+    if (raw.contains('invalid login credentials')) {
+      return 'E-mail ou senha incorretos.';
+    }
+    if (raw.contains('email not confirmed')) {
+      return 'E-mail não confirmado. Verifique sua caixa de entrada.';
+    }
+    if (raw.contains('user already registered')) {
+      return 'Este e-mail já está cadastrado.';
+    }
+    if (raw.contains('missing email or phone')) {
+      return 'Informe seu e-mail e sua senha.';
+    }
+    if (raw.contains('password should be at least')) {
+      return 'A senha precisa ter pelo menos 6 caracteres.';
+    }
+    if (raw.contains('over email rate limit') ||
+        raw.contains('rate limit')) {
+      return 'Muitas tentativas. Aguarde alguns instantes e tente novamente.';
+    }
+    return 'Não foi possível entrar. Tente novamente.';
   }
 }

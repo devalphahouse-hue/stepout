@@ -1,14 +1,11 @@
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/flutter_flow_widgets.dart';
 import 'dart:ui';
 import '/flutter_flow/custom_functions.dart' as functions;
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'modal_pagamento_model.dart';
 export 'modal_pagamento_model.dart';
 
@@ -48,872 +45,494 @@ class _ModalPagamentoWidgetState extends State<ModalPagamentoWidget> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: AlignmentDirectional(0.0, 0.0),
-      child: Container(
-        // Responsivo: largura máxima 600px, mas ocupa no máximo 95% da tela
-        width: MediaQuery.sizeOf(context).width < kBreakpointSmall
-            ? MediaQuery.sizeOf(context).width * 0.95
-            : MediaQuery.sizeOf(context).width < kBreakpointMedium
-                ? MediaQuery.sizeOf(context).width * 0.85
-                : 600.0,
-        decoration: BoxDecoration(
-          color: FlutterFlowTheme.of(context).primaryBackground,
-          borderRadius: BorderRadius.circular(8.0),
+  String _str(String path) {
+    final v = getJsonField(widget!.items, path);
+    if (v == null) return '';
+    return v.toString();
+  }
+
+  num? _num(String path) {
+    final v = getJsonField(widget!.items, path);
+    if (v == null) return null;
+    if (v is num) return v;
+    return num.tryParse(v.toString());
+  }
+
+  Future<void> _copyToClipboard(String value) async {
+    if (value.isEmpty) return;
+    await Clipboard.setData(ClipboardData(text: value));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Copiado para a área de transferência'),
+        duration: const Duration(seconds: 2),
+        backgroundColor: FlutterFlowTheme.of(context).primary,
+      ),
+    );
+  }
+
+  Widget _sectionTitle(String label) {
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 0, 8),
+      child: Text(
+        label,
+        style: FlutterFlowTheme.of(context).labelMedium.override(
+              font: GoogleFonts.inter(fontWeight: FontWeight.w600),
+              fontWeight: FontWeight.w600,
+              color: FlutterFlowTheme.of(context).secondaryText,
+              letterSpacing: 0.4,
+              fontSize: 11,
+            ),
+      ),
+    );
+  }
+
+  Widget _infoCard({required Widget child}) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: FlutterFlowTheme.of(context).secondaryBackground,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: FlutterFlowTheme.of(context).alternate,
+          width: 1,
         ),
-        child: SingleChildScrollView(
+      ),
+      padding: const EdgeInsets.all(16),
+      child: child,
+    );
+  }
+
+  Widget _kvRow({
+    required IconData icon,
+    required String label,
+    required String value,
+    bool emphasize = false,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(0, 2, 12, 0),
+          child: Icon(
+            icon,
+            size: 18,
+            color: FlutterFlowTheme.of(context).secondaryText,
+          ),
+        ),
+        Expanded(
           child: Column(
-            mainAxisSize: MainAxisSize.max,
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: EdgeInsets.all(20.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.max,
-                          children: [
-                            Icon(
-                              Icons.attach_money_sharp,
-                              color: FlutterFlowTheme.of(context).primary,
-                              size: 24.0,
-                            ),
-                            Text(
-                              'Detalhes da Cobrança',
-                              style: FlutterFlowTheme.of(context)
-                                  .headlineSmall
-                                  .override(
-                                    font: GoogleFonts.interTight(
-                                      fontWeight: FlutterFlowTheme.of(context)
-                                          .headlineSmall
-                                          .fontWeight,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .headlineSmall
-                                          .fontStyle,
-                                    ),
-                                    letterSpacing: 0.0,
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .headlineSmall
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .headlineSmall
-                                        .fontStyle,
-                                  ),
-                            ),
-                          ].divide(SizedBox(width: 8.0)),
-                        ),
-                        FlutterFlowIconButton(
-                          borderRadius: 50.0,
-                          buttonSize: 40.0,
-                          icon: Icon(
-                            Icons.close_rounded,
-                            color: FlutterFlowTheme.of(context).primaryText,
-                            size: 24.0,
-                          ),
-                          onPressed: () async {
-                            Navigator.pop(context);
-                          },
-                        ),
-                      ],
+              Text(
+                label,
+                style: FlutterFlowTheme.of(context).labelSmall.override(
+                      font: GoogleFonts.inter(),
+                      letterSpacing: 0.0,
+                      color: FlutterFlowTheme.of(context).secondaryText,
+                      fontSize: 11,
                     ),
-                    Text(
-                      'Informações completas sobre esta cobrança',
-                      style: FlutterFlowTheme.of(context).bodyMedium.override(
-                            font: GoogleFonts.inter(
-                              fontWeight: FlutterFlowTheme.of(context)
-                                  .bodyMedium
-                                  .fontWeight,
-                              fontStyle: FlutterFlowTheme.of(context)
-                                  .bodyMedium
-                                  .fontStyle,
-                            ),
-                            letterSpacing: 0.0,
-                            fontWeight: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .fontWeight,
-                            fontStyle: FlutterFlowTheme.of(context)
-                                .bodyMedium
-                                .fontStyle,
-                          ),
-                    ),
-                    Row(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.max,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Status do Pagamento',
-                                style: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .override(
-                                      font: GoogleFonts.inter(
-                                        fontWeight: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .fontWeight,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .fontStyle,
-                                      ),
-                                      letterSpacing: 0.0,
-                                      fontWeight: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontWeight,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontStyle,
-                                    ),
-                              ),
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: FlutterFlowTheme.of(context).success,
-                                  borderRadius: BorderRadius.circular(24.0),
-                                ),
-                                child: Padding(
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      12.0, 4.0, 12.0, 4.0),
-                                  child: Text(
-                                    FFAppConstants.statuscobranca ==
-                                            getJsonField(
-                                              widget!.items,
-                                              r'''$.status_cobranca''',
-                                            ).toString()
-                                        ? 'Pago'
-                                        : 'Aguardando',
-                                    style: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .override(
-                                          font: GoogleFonts.inter(
-                                            fontWeight:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontWeight,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontStyle,
-                                          ),
-                                          color: FlutterFlowTheme.of(context)
-                                              .primaryBackground,
-                                          letterSpacing: 0.0,
-                                          fontWeight:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .fontWeight,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .fontStyle,
-                                        ),
-                                  ),
-                                ),
-                              ),
-                            ].divide(SizedBox(height: 8.0)),
-                          ),
+              ),
+              const SizedBox(height: 2),
+              SelectionArea(
+                child: Text(
+                  value.isEmpty ? '—' : value,
+                  style: FlutterFlowTheme.of(context).bodyMedium.override(
+                        font: GoogleFonts.inter(
+                          fontWeight: emphasize
+                              ? FontWeight.w600
+                              : FontWeight.w500,
                         ),
-                        Expanded(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.max,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Tipo',
-                                style: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .override(
-                                      font: GoogleFonts.inter(
-                                        fontWeight: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .fontWeight,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .fontStyle,
-                                      ),
-                                      letterSpacing: 0.0,
-                                      fontWeight: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontWeight,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontStyle,
-                                    ),
-                              ),
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: FlutterFlowTheme.of(context)
-                                      .secondaryBackground,
-                                  borderRadius: BorderRadius.circular(24.0),
-                                  border: Border.all(
-                                    color:
-                                        FlutterFlowTheme.of(context).alternate,
-                                    width: 0.5,
-                                  ),
-                                ),
-                                child: Padding(
-                                  padding: EdgeInsetsDirectional.fromSTEB(
-                                      12.0, 4.0, 12.0, 4.0),
-                                  child: Text(
-                                    valueOrDefault<String>(
-                                      getJsonField(
-                                        widget!.items,
-                                        r'''$.tipo_cobranca''',
-                                      )?.toString(),
-                                      '-',
-                                    ),
-                                    style: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .override(
-                                          font: GoogleFonts.inter(
-                                            fontWeight:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontWeight,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontStyle,
-                                          ),
-                                          color: FlutterFlowTheme.of(context)
-                                              .secondaryText,
-                                          letterSpacing: 0.0,
-                                          fontWeight:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .fontWeight,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .fontStyle,
-                                        ),
-                                  ),
-                                ),
-                              ),
-                            ].divide(SizedBox(height: 8.0)),
-                          ),
-                        ),
-                      ].divide(SizedBox(width: 12.0)),
-                    ),
-                    Divider(
-                      thickness: 0.5,
-                      color: FlutterFlowTheme.of(context).alternate,
-                    ),
-                    Builder(
-                      builder: (context) {
-                        final isMobile = MediaQuery.sizeOf(context).width < kBreakpointSmall;
-                        final children = [
-                        Expanded(
-                          child: Container(
-                            width: 100.0,
-                            height: 100.0,
-                            decoration: BoxDecoration(
-                              color: Color(0xFFF2F8FE),
-                              borderRadius: BorderRadius.circular(8.0),
-                              border: Border.all(
-                                color: Color(0xFFC3DEFC),
-                              ),
-                            ),
-                            child: Padding(
-                              padding: EdgeInsets.all(20.0),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.max,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Valor Total',
-                                    style: FlutterFlowTheme.of(context)
-                                        .titleMedium
-                                        .override(
-                                          font: GoogleFonts.interTight(
-                                            fontWeight: FontWeight.normal,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .titleMedium
-                                                    .fontStyle,
-                                          ),
-                                          color: FlutterFlowTheme.of(context)
-                                              .secondaryText,
-                                          letterSpacing: 0.0,
-                                          fontWeight: FontWeight.normal,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .titleMedium
-                                                  .fontStyle,
-                                        ),
-                                  ),
-                                  Text(
-                                    NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$ ').format(
-                                      double.tryParse(getJsonField(widget!.items, r'''$.valor''')?.toString() ?? '0') ?? 0,
-                                    ),
-                                    style: FlutterFlowTheme.of(context)
-                                        .headlineMedium
-                                        .override(
-                                          font: GoogleFonts.interTight(
-                                            fontWeight:
-                                                FlutterFlowTheme.of(context)
-                                                    .headlineMedium
-                                                    .fontWeight,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .headlineMedium
-                                                    .fontStyle,
-                                          ),
-                                          color: Color(0xFF0673EF),
-                                          letterSpacing: 0.0,
-                                          fontWeight:
-                                              FlutterFlowTheme.of(context)
-                                                  .headlineMedium
-                                                  .fontWeight,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .headlineMedium
-                                                  .fontStyle,
-                                        ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Container(
-                            width: 100.0,
-                            height: 100.0,
-                            decoration: BoxDecoration(
-                              color: FlutterFlowTheme.of(context).alternate,
-                              borderRadius: BorderRadius.circular(8.0),
-                              border: Border.all(
-                                color:
-                                    FlutterFlowTheme.of(context).secondaryText,
-                              ),
-                            ),
-                            child: Padding(
-                              padding: EdgeInsets.all(20.0),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.max,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '${getJsonField(
-                                          widget!.items,
-                                          r'''$.num_parcelas''',
-                                        ) != null ? getJsonField(
-                                        widget!.items,
-                                        r'''$.num_parcelas''',
-                                      ).toString() : '1'} x de',
-                                    style: FlutterFlowTheme.of(context)
-                                        .titleMedium
-                                        .override(
-                                          font: GoogleFonts.interTight(
-                                            fontWeight: FontWeight.normal,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .titleMedium
-                                                    .fontStyle,
-                                          ),
-                                          color: FlutterFlowTheme.of(context)
-                                              .secondaryText,
-                                          letterSpacing: 0.0,
-                                          fontWeight: FontWeight.normal,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .titleMedium
-                                                  .fontStyle,
-                                        ),
-                                  ),
-                                  Text(
-                                    NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$ ').format(
-                                      double.tryParse((getJsonField(widget!.items, r'''$.valor_parcelas''') ??
-                                          getJsonField(widget!.items, r'''$.valor''') ?? 0).toString()) ?? 0,
-                                    ),
-                                    style: FlutterFlowTheme.of(context)
-                                        .headlineMedium
-                                        .override(
-                                          font: GoogleFonts.interTight(
-                                            fontWeight:
-                                                FlutterFlowTheme.of(context)
-                                                    .headlineMedium
-                                                    .fontWeight,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .headlineMedium
-                                                    .fontStyle,
-                                          ),
-                                          color: FlutterFlowTheme.of(context)
-                                              .primaryText,
-                                          letterSpacing: 0.0,
-                                          fontWeight:
-                                              FlutterFlowTheme.of(context)
-                                                  .headlineMedium
-                                                  .fontWeight,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .headlineMedium
-                                                  .fontStyle,
-                                        ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        ];
-                        return isMobile
-                            ? Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: children.map((c) {
-                                  if (c is Expanded) return c.child;
-                                  return c;
-                                }).toList().cast<Widget>()..insert(1, SizedBox(height: 12.0)),
-                              )
-                            : Row(
-                                mainAxisSize: MainAxisSize.max,
-                                children: children,
-                              );
-                      },
-                    ),
-                    Divider(
-                      thickness: 0.5,
-                      color: FlutterFlowTheme.of(context).alternate,
-                    ),
-                    Builder(
-                      builder: (context) {
-                        final isMobile = MediaQuery.sizeOf(context).width < kBreakpointSmall;
-                        final children = [
-                        Expanded(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.max,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisSize: MainAxisSize.max,
-                                children: [
-                                  Icon(
-                                    Icons.person_outline,
-                                    color: FlutterFlowTheme.of(context)
-                                        .secondaryText,
-                                    size: 24.0,
-                                  ),
-                                  Text(
-                                    'Cliente',
-                                    style: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .override(
-                                          font: GoogleFonts.inter(
-                                            fontWeight:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontWeight,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontStyle,
-                                          ),
-                                          color: FlutterFlowTheme.of(context)
-                                              .secondaryText,
-                                          letterSpacing: 0.0,
-                                          fontWeight:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .fontWeight,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .fontStyle,
-                                        ),
-                                  ),
-                                ].divide(SizedBox(width: 8.0)),
-                              ),
-                              Text(
-                                valueOrDefault<String>(
-                                  getJsonField(
-                                    widget!.items,
-                                    r'''$.user_nome''',
-                                  )?.toString(),
-                                  '-',
-                                ),
-                                style: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .override(
-                                      font: GoogleFonts.inter(
-                                        fontWeight: FontWeight.bold,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .fontStyle,
-                                      ),
-                                      letterSpacing: 0.0,
-                                      fontWeight: FontWeight.bold,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontStyle,
-                                    ),
-                              ),
-                            ].divide(SizedBox(height: 8.0)),
-                          ),
-                        ),
-                        Expanded(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.max,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisSize: MainAxisSize.max,
-                                children: [
-                                  Icon(
-                                    Icons.email_outlined,
-                                    color: FlutterFlowTheme.of(context)
-                                        .secondaryText,
-                                    size: 24.0,
-                                  ),
-                                  Text(
-                                    'Email',
-                                    style: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .override(
-                                          font: GoogleFonts.inter(
-                                            fontWeight:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontWeight,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontStyle,
-                                          ),
-                                          color: FlutterFlowTheme.of(context)
-                                              .secondaryText,
-                                          letterSpacing: 0.0,
-                                          fontWeight:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .fontWeight,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .fontStyle,
-                                        ),
-                                  ),
-                                ].divide(SizedBox(width: 8.0)),
-                              ),
-                              Text(
-                                valueOrDefault<String>(
-                                  getJsonField(
-                                    widget!.items,
-                                    r'''$.user_email''',
-                                  )?.toString(),
-                                  '-',
-                                ),
-                                style: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .override(
-                                      font: GoogleFonts.inter(
-                                        fontWeight: FontWeight.bold,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .fontStyle,
-                                      ),
-                                      letterSpacing: 0.0,
-                                      fontWeight: FontWeight.bold,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontStyle,
-                                    ),
-                              ),
-                            ].divide(SizedBox(height: 8.0)),
-                          ),
-                        ),
-                        ];
-                        return isMobile
-                            ? Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: children.map((c) {
-                                  if (c is Expanded) return c.child;
-                                  return c;
-                                }).toList().cast<Widget>()..insert(1, SizedBox(height: 12.0)),
-                              )
-                            : Row(
-                                mainAxisSize: MainAxisSize.max,
-                                children: children,
-                              );
-                      },
-                    ),
-                    Builder(
-                      builder: (context) {
-                        final isMobile = MediaQuery.sizeOf(context).width < kBreakpointSmall;
-                        final children = [
-                        Expanded(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.max,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisSize: MainAxisSize.max,
-                                children: [
-                                  Icon(
-                                    Icons.credit_card_rounded,
-                                    color: FlutterFlowTheme.of(context)
-                                        .secondaryText,
-                                    size: 24.0,
-                                  ),
-                                  Text(
-                                    'Forma de Pagamento',
-                                    style: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .override(
-                                          font: GoogleFonts.inter(
-                                            fontWeight:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontWeight,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontStyle,
-                                          ),
-                                          color: FlutterFlowTheme.of(context)
-                                              .secondaryText,
-                                          letterSpacing: 0.0,
-                                          fontWeight:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .fontWeight,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .fontStyle,
-                                        ),
-                                  ),
-                                ].divide(SizedBox(width: 8.0)),
-                              ),
-                              Text(
-                                'Cartão de Crédito',
-                                style: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .override(
-                                      font: GoogleFonts.inter(
-                                        fontWeight: FontWeight.bold,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .fontStyle,
-                                      ),
-                                      letterSpacing: 0.0,
-                                      fontWeight: FontWeight.bold,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontStyle,
-                                    ),
-                              ),
-                            ].divide(SizedBox(height: 8.0)),
-                          ),
-                        ),
-                        Expanded(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.max,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisSize: MainAxisSize.max,
-                                children: [
-                                  FaIcon(
-                                    FontAwesomeIcons.clock,
-                                    color: FlutterFlowTheme.of(context)
-                                        .secondaryText,
-                                    size: 20.0,
-                                  ),
-                                  Text(
-                                    'Data do pagamento',
-                                    style: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .override(
-                                          font: GoogleFonts.inter(
-                                            fontWeight:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontWeight,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodyMedium
-                                                    .fontStyle,
-                                          ),
-                                          color: FlutterFlowTheme.of(context)
-                                              .secondaryText,
-                                          letterSpacing: 0.0,
-                                          fontWeight:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .fontWeight,
-                                          fontStyle:
-                                              FlutterFlowTheme.of(context)
-                                                  .bodyMedium
-                                                  .fontStyle,
-                                        ),
-                                  ),
-                                ].divide(SizedBox(width: 8.0)),
-                              ),
-                              Text(
-                                valueOrDefault<String>(
-                                  dateTimeFormat(
-                                    "dd/MM/yyyy H:mm",
-                                    functions.stringToDatetime(
-                                        valueOrDefault<String>(
-                                      getJsonField(
-                                        widget!.items,
-                                        r'''$.created_at''',
-                                      )?.toString(),
-                                      '0',
-                                    )),
-                                    locale: FFLocalizations.of(context)
-                                        .languageCode,
-                                  ),
-                                  '0',
-                                ),
-                                style: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .override(
-                                      font: GoogleFonts.inter(
-                                        fontWeight: FontWeight.bold,
-                                        fontStyle: FlutterFlowTheme.of(context)
-                                            .bodyMedium
-                                            .fontStyle,
-                                      ),
-                                      letterSpacing: 0.0,
-                                      fontWeight: FontWeight.bold,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontStyle,
-                                    ),
-                              ),
-                            ].divide(SizedBox(height: 8.0)),
-                          ),
-                        ),
-                        ];
-                        return isMobile
-                            ? Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: children.map((c) {
-                                  if (c is Expanded) return c.child;
-                                  return c;
-                                }).toList().cast<Widget>()..insert(1, SizedBox(height: 12.0)),
-                              )
-                            : Row(
-                                mainAxisSize: MainAxisSize.max,
-                                children: children,
-                              );
-                      },
-                    ),
-                    Divider(
-                      thickness: 0.5,
-                      color: FlutterFlowTheme.of(context).alternate,
-                    ),
-                    Text(
-                      'Descrição',
-                      style:
-                          FlutterFlowTheme.of(context).headlineSmall.override(
-                                font: GoogleFonts.interTight(
-                                  fontWeight: FlutterFlowTheme.of(context)
-                                      .headlineSmall
-                                      .fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .headlineSmall
-                                      .fontStyle,
-                                ),
-                                letterSpacing: 0.0,
-                                fontWeight: FlutterFlowTheme.of(context)
-                                    .headlineSmall
-                                    .fontWeight,
-                                fontStyle: FlutterFlowTheme.of(context)
-                                    .headlineSmall
-                                    .fontStyle,
-                              ),
-                    ),
-                    Column(
-                      mainAxisSize: MainAxisSize.max,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'ID da Cobrança (Asaas)',
-                          style: FlutterFlowTheme.of(context)
-                              .bodyMedium
-                              .override(
-                                font: GoogleFonts.inter(
-                                  fontWeight: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .fontStyle,
-                                ),
-                                color:
-                                    FlutterFlowTheme.of(context).secondaryText,
-                                letterSpacing: 0.0,
-                                fontWeight: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .fontWeight,
-                                fontStyle: FlutterFlowTheme.of(context)
-                                    .bodyMedium
-                                    .fontStyle,
-                              ),
-                        ),
-                        Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: FlutterFlowTheme.of(context)
-                                .secondaryBackground,
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.all(12.0),
-                            child: Text(
-                              valueOrDefault<String>(
-                                getJsonField(
-                                  widget!.items,
-                                  r'''$.id_cobranca_asaas''',
-                                )?.toString(),
-                                '-',
-                              ),
-                              style: FlutterFlowTheme.of(context)
-                                  .bodyMedium
-                                  .override(
-                                    font: GoogleFonts.inter(
-                                      fontWeight: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontWeight,
-                                      fontStyle: FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .fontStyle,
-                                    ),
-                                    letterSpacing: 0.0,
-                                    fontWeight: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontWeight,
-                                    fontStyle: FlutterFlowTheme.of(context)
-                                        .bodyMedium
-                                        .fontStyle,
-                                  ),
-                            ),
-                          ),
-                        ),
-                      ].divide(SizedBox(height: 8.0)),
-                    ),
-                  ].divide(SizedBox(height: 20.0)),
+                        letterSpacing: 0.0,
+                        fontWeight:
+                            emphasize ? FontWeight.w600 : FontWeight.w500,
+                        color: value.isEmpty
+                            ? FlutterFlowTheme.of(context).secondaryText
+                            : FlutterFlowTheme.of(context).primaryText,
+                      ),
                 ),
               ),
             ],
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _idTile({required String label, required String value}) {
+    final hasValue = value.isNotEmpty;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: FlutterFlowTheme.of(context).labelSmall.override(
+                font: GoogleFonts.inter(),
+                letterSpacing: 0.0,
+                color: FlutterFlowTheme.of(context).secondaryText,
+                fontSize: 11,
+              ),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          decoration: BoxDecoration(
+            color: FlutterFlowTheme.of(context).primaryBackground,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: FlutterFlowTheme.of(context).alternate,
+              width: 1,
+            ),
+          ),
+          padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 4, 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: SelectionArea(
+                  child: Text(
+                    hasValue ? value : 'Não gerada',
+                    style: FlutterFlowTheme.of(context).bodyMedium.override(
+                          font: GoogleFonts.robotoMono(),
+                          letterSpacing: 0.0,
+                          fontSize: 12,
+                          color: hasValue
+                              ? FlutterFlowTheme.of(context).primaryText
+                              : FlutterFlowTheme.of(context).secondaryText,
+                        ),
+                  ),
+                  // overflow handled by SelectableText behavior
+                ),
+              ),
+              if (hasValue)
+                Tooltip(
+                  message: 'Copiar',
+                  child: InkWell(
+                    onTap: () => _copyToClipboard(value),
+                    borderRadius: BorderRadius.circular(6),
+                    child: Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Icon(
+                        Icons.copy_rounded,
+                        size: 16,
+                        color: FlutterFlowTheme.of(context).secondaryText,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final viewportWidth = MediaQuery.sizeOf(context).width;
+    final isCompact = viewportWidth < kBreakpointSmall;
+    final modalWidth = isCompact
+        ? viewportWidth * 0.95
+        : viewportWidth < kBreakpointMedium
+            ? viewportWidth * 0.85
+            : 600.0;
+
+    final statusRaw = _str(r'''$.status_cobranca''');
+    final statusLabel = functions.cobrancaStatusLabel(statusRaw);
+    final statusBg = functions.cobrancaStatusColorBg(statusRaw);
+    final statusFg = functions.cobrancaStatusColorFg(statusRaw);
+
+    final valor = _num(r'''$.valor''') ?? 0;
+    final numParcelasRaw = _num(r'''$.num_parcelas''')?.toInt() ?? 1;
+    final numParcelas = numParcelasRaw < 1 ? 1 : numParcelasRaw;
+    final valorParcela = _num(r'''$.valor_parcelas''') ?? valor / numParcelas;
+
+    final cliente = _str(r'''$.user_nome''');
+    final email = _str(r'''$.user_email''');
+    final formaPagamento = _str(r'''$.forma_pagamento''');
+    final createdAt = _str(r'''$.created_at''');
+    final tipoCobranca = _str(r'''$.tipo_cobranca''');
+
+    final asaasId = _str(r'''$.id_cobranca_asaas''');
+    final internalId = _str(r'''$.id''');
+
+    final formattedCreatedAt = dateTimeFormat(
+      "dd/MM/yyyy 'às' HH:mm",
+      functions.stringToDatetime(createdAt),
+      locale: FFLocalizations.of(context).languageCode,
+    );
+
+    return Align(
+      alignment: AlignmentDirectional.center,
+      child: Container(
+        width: modalWidth,
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.92,
+        ),
+        decoration: BoxDecoration(
+          color: FlutterFlowTheme.of(context).primaryBackground,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: const [
+            BoxShadow(
+              blurRadius: 24,
+              color: Color(0x33000000),
+              offset: Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ── Header ────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 12, 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: FlutterFlowTheme.of(context)
+                                .primary
+                                .withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            Icons.receipt_long_rounded,
+                            color: FlutterFlowTheme.of(context).primary,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Detalhes da cobrança',
+                                style: FlutterFlowTheme.of(context)
+                                    .titleMedium
+                                    .override(
+                                      font: GoogleFonts.interTight(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 0.0,
+                                    ),
+                              ),
+                              if (tipoCobranca.isNotEmpty)
+                                Padding(
+                                  padding:
+                                      const EdgeInsetsDirectional.fromSTEB(
+                                          0, 2, 0, 0),
+                                  child: Text(
+                                    tipoCobranca[0].toUpperCase() +
+                                        tipoCobranca.substring(1),
+                                    style: FlutterFlowTheme.of(context)
+                                        .labelSmall
+                                        .override(
+                                          font: GoogleFonts.inter(),
+                                          color: FlutterFlowTheme.of(context)
+                                              .secondaryText,
+                                          letterSpacing: 0.0,
+                                          fontSize: 11,
+                                        ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsetsDirectional.fromSTEB(10, 4, 10, 4),
+                    decoration: BoxDecoration(
+                      color: statusBg,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      statusLabel,
+                      style: FlutterFlowTheme.of(context).labelSmall.override(
+                            font: GoogleFonts.inter(
+                                fontWeight: FontWeight.w600),
+                            color: statusFg,
+                            letterSpacing: 0.0,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  FlutterFlowIconButton(
+                    borderRadius: 999,
+                    buttonSize: 36,
+                    icon: Icon(
+                      Icons.close_rounded,
+                      color: FlutterFlowTheme.of(context).primaryText,
+                      size: 20,
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+            Divider(
+              height: 1,
+              thickness: 1,
+              color: FlutterFlowTheme.of(context).alternate,
+            ),
+
+            // ── Body (scrollable) ─────────────────────────────────
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Hero – valor
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            FlutterFlowTheme.of(context)
+                                .primary
+                                .withOpacity(0.06),
+                            FlutterFlowTheme.of(context)
+                                .primary
+                                .withOpacity(0.02),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: FlutterFlowTheme.of(context)
+                              .primary
+                              .withOpacity(0.18),
+                          width: 1,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Valor total',
+                            style:
+                                FlutterFlowTheme.of(context).labelMedium.override(
+                                      font: GoogleFonts.inter(),
+                                      color: FlutterFlowTheme.of(context)
+                                          .secondaryText,
+                                      letterSpacing: 0.4,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            functions.formatCurrencyBr(valor),
+                            style: FlutterFlowTheme.of(context)
+                                .headlineMedium
+                                .override(
+                                  font: GoogleFonts.interTight(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.0,
+                                  color: FlutterFlowTheme.of(context).primary,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            numParcelas > 1
+                                ? '$numParcelas× de ${functions.formatCurrencyBr(valorParcela)}'
+                                : 'Pagamento à vista',
+                            style:
+                                FlutterFlowTheme.of(context).bodyMedium.override(
+                                      font: GoogleFonts.inter(),
+                                      color: FlutterFlowTheme.of(context)
+                                          .secondaryText,
+                                      letterSpacing: 0.0,
+                                    ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // ── Cliente ──
+                    _sectionTitle('CLIENTE'),
+                    _infoCard(
+                      child: Column(
+                        children: [
+                          _kvRow(
+                            icon: Icons.person_outline_rounded,
+                            label: 'Nome',
+                            value: cliente,
+                            emphasize: true,
+                          ),
+                          if (email.isNotEmpty) const SizedBox(height: 14),
+                          if (email.isNotEmpty)
+                            _kvRow(
+                              icon: Icons.alternate_email_rounded,
+                              label: 'E-mail',
+                              value: email,
+                            ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // ── Pagamento ──
+                    _sectionTitle('PAGAMENTO'),
+                    _infoCard(
+                      child: Column(
+                        children: [
+                          _kvRow(
+                            icon: Icons.event_available_rounded,
+                            label: 'Criada em',
+                            value: formattedCreatedAt,
+                          ),
+                          const SizedBox(height: 14),
+                          _kvRow(
+                            icon: Icons.credit_card_rounded,
+                            label: 'Forma de pagamento',
+                            value: formaPagamento,
+                          ),
+                          const SizedBox(height: 14),
+                          _kvRow(
+                            icon: Icons.account_balance_wallet_outlined,
+                            label: 'Parcelamento',
+                            value: numParcelas > 1
+                                ? '$numParcelas× de ${functions.formatCurrencyBr(valorParcela)}'
+                                : 'À vista',
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // ── IDs ──
+                    _sectionTitle('IDENTIFICADORES'),
+                    _infoCard(
+                      child: Column(
+                        children: [
+                          _idTile(label: 'ID Asaas', value: asaasId),
+                          const SizedBox(height: 14),
+                          _idTile(label: 'ID interno', value: internalId),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

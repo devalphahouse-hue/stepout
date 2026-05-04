@@ -1,4 +1,4 @@
-package com.mycompany.stepoutfranqueado
+package br.com.stepout.aluno
 
 import io.flutter.embedding.android.FlutterActivity
 
