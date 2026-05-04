@@ -128,7 +128,7 @@ class _SidebarWidgetState extends State<SidebarWidget> {
               icon: Icons.chat_rounded,
               label: 'Chat',
               active: route == 'Chat',
-              onTap: () => context.pushNamed(ChatWidget.routeName),
+              onTap: () => _push(ChatWidget.routeName),
             ),
             _SidebarItem(
               icon: Icons.attach_money_rounded,
