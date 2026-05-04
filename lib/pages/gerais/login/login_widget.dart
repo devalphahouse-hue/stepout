@@ -323,32 +323,33 @@ class _LoginFormPanel extends StatelessWidget {
                           onSuffixTap: onTogglePassword,
                           validator: passwordValidator,
                         ),
-                        const SizedBox(height: 6.0),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton(
-                            onPressed: onForgot,
-                            style: TextButton.styleFrom(
-                              foregroundColor: theme.primary,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8.0, vertical: 4.0),
-                              minimumSize: const Size(0, 32),
-                              tapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
-                            ),
-                            child: Text(
-                              'Esqueceu sua senha?',
-                              style: theme.bodyMedium.override(
-                                font: GoogleFonts.inter(
-                                    fontWeight: FontWeight.w600),
-                                fontSize: 13.0,
-                                fontWeight: FontWeight.w600,
-                                color: theme.primary,
-                                letterSpacing: 0.0,
-                              ),
-                            ),
-                          ),
-                        ),
+                        // "Esqueceu sua senha?" ocultado — reativar descomentando o bloco abaixo.
+                        // const SizedBox(height: 6.0),
+                        // Align(
+                        //   alignment: Alignment.centerRight,
+                        //   child: TextButton(
+                        //     onPressed: onForgot,
+                        //     style: TextButton.styleFrom(
+                        //       foregroundColor: theme.primary,
+                        //       padding: const EdgeInsets.symmetric(
+                        //           horizontal: 8.0, vertical: 4.0),
+                        //       minimumSize: const Size(0, 32),
+                        //       tapTargetSize:
+                        //           MaterialTapTargetSize.shrinkWrap,
+                        //     ),
+                        //     child: Text(
+                        //       'Esqueceu sua senha?',
+                        //       style: theme.bodyMedium.override(
+                        //         font: GoogleFonts.inter(
+                        //             fontWeight: FontWeight.w600),
+                        //         fontSize: 13.0,
+                        //         fontWeight: FontWeight.w600,
+                        //         color: theme.primary,
+                        //         letterSpacing: 0.0,
+                        //       ),
+                        //     ),
+                        //   ),
+                        // ),
                         const SizedBox(height: 14.0),
                         _PrimaryLoginButton(
                           label: loading ? 'Entrando…' : 'Entrar',
