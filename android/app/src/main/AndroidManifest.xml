@@ -12,7 +12,7 @@
 
     <application
         android:label="Stepout - Aluno"
-        tools:replace="android:label"
+        tools:replace="android:label,android:allowBackup"
         android:icon="@mipmap/ic_launcher"
         android:requestLegacyExternalStorage="true"
         android:allowBackup="false"

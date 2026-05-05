@@ -1,4 +1,4 @@
-package br.com.stepout.aluno
+package br.com.stepout.aluno.app
 
 import io.flutter.embedding.android.FlutterActivity
 
