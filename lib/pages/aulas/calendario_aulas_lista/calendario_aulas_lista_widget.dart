@@ -154,20 +154,25 @@ class _CalendarioAulasListaWidgetState
                   child: Padding(
                     padding: EdgeInsets.all(responsivePadding(context)),
                     child: FutureBuilder<List<AulasRow>>(
-                          future: AulasTable().queryRows(
-                            queryFn: (q) => q
-                                .containsOrNull(
-                                  'alunos_convidados',
-                                  '{${currentUserUid}}',
-                                )
-                                .gteOrNull(
-                                  'datetimeinicio_aula',
-                                  supaSerialize<DateTime>(
-                                      getCurrentTimestamp),
-                                )
-                                .order('datetimeinicio_aula',
-                                    ascending: true),
-                          ),
+                          future: SupaFlow.client
+                              .from('Aulas')
+                              .select('*, turmas!inner(deleted_at)')
+                              .contains(
+                                'alunos_convidados',
+                                '{${currentUserUid}}',
+                              )
+                              .gte(
+                                'datetimeinicio_aula',
+                                supaSerialize<DateTime>(
+                                    getCurrentTimestamp)!,
+                              )
+                              .filter('turmas.deleted_at', 'is', null)
+                              .order('datetimeinicio_aula',
+                                  ascending: true)
+                              .then((rows) => rows
+                                  .map((r) => AulasRow(
+                                      Map<String, dynamic>.from(r)))
+                                  .toList()),
                           builder: (context, snapshot) {
                             final hasError = snapshot.hasError;
                             final hasData = snapshot.hasData;
