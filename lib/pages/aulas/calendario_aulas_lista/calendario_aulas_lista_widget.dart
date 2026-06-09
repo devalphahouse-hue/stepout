@@ -1,6 +1,7 @@
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/schema/structs/index.dart';
 import '/backend/supabase/supabase.dart';
+import '/componentes/bottom_nav_mobile/bottom_nav_mobile_widget.dart';
 import '/componentes/sidebar/sidebar_widget.dart';
 import '/componentes/sidebar_slim/sidebar_slim_widget.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
@@ -121,6 +122,7 @@ class _CalendarioAulasListaWidgetState
           backgroundColor: theme.primaryBackground,
           child: SidebarWidget(route: 'Aulas'),
         ),
+        bottomNavigationBar: const BottomNavMobileWidget(active: 'Aulas'),
         body: SafeArea(
           top: true,
           child: Row(
@@ -166,7 +168,6 @@ class _CalendarioAulasListaWidgetState
                                 supaSerialize<DateTime>(
                                     getCurrentTimestamp)!,
                               )
-                              .filter('turmas.deleted_at', 'is', null)
                               .order('datetimeinicio_aula',
                                   ascending: true)
                               .then((rows) => rows
