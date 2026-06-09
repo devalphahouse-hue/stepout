@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -16,51 +18,72 @@
 	<string>Stepout - Aluno</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
-
 	<key>CFBundleShortVersionString</key>
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
 	<array>
-        <dict>
-            <key>CFBundleTypeRole</key>
-            <string>Editor</string>
-            <key>CFBundleURLSchemes</key>
-            <array>
-                <!--FF_REVERSED_CLIENT_ID-->
-                
-            </array>
-        </dict>
-
-        <dict>
-        <key>CFBundleTypeRole</key>
-        <string>Editor</string>
-        <key>CFBundleURLName</key>
-        <string>stepoutaluno.com</string>
-        <key>CFBundleURLSchemes</key>
-        <array>
-        <string>stepoutaluno</string>
-        </array>
-        </dict>
-    </array>
-    <key>FlutterDeepLinkingEnabled</key>
-    <true/>
-
-
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array/>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>stepoutaluno.com</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>stepoutaluno</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>FlutterDeepLinkingEnabled</key>
+	<true/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-
+	<key>NSCalendarsUsageDescription</key>
+	<string>O Stepout não acessa seu calendário. Esta permissão é exigida por um componente de vídeo das aulas ao vivo; nenhum dado de calendário é lido ou armazenado.</string>
 	<key>NSCameraUsageDescription</key>
-    <string>In order to take a picture or video, this app requires permission to access the camera.</string>
+	<string>O Stepout precisa acessar a câmera para que você participe das aulas ao vivo e envie fotos quando necessário.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>O Stepout precisa acessar o microfone para que você participe das aulas ao vivo com áudio.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-    <string>In order to upload data, this app requires permission to access the photo library.</string>
-
-
-
-
+	<string>O Stepout precisa acessar suas fotos para que você possa enviar imagens (ex.: foto de perfil).</string>
+	<key>RTCAppGroupIdentifier</key>
+	<string>group.br.com.stepout.aluno</string>
+	<key>RTCScreenSharingExtension</key>
+	<string>br.com.stepout.aluno.broadcast</string>
+	<key>_UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneClassName</key>
+					<string>UIWindowScene</string>
+					<key>UISceneConfigurationName</key>
+					<string>flutter</string>
+					<key>UISceneDelegateClassName</key>
+					<string>FlutterSceneDelegate</string>
+					<key>UISceneStoryboardFile</key>
+					<string>Main</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -80,6 +103,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-
 </dict>
 </plist>

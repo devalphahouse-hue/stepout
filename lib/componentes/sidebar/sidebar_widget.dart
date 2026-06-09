@@ -71,6 +71,7 @@ class _SidebarWidgetState extends State<SidebarWidget> {
     final theme = FlutterFlowTheme.of(context);
     final route = widget.route;
     final isCompact = MediaQuery.sizeOf(context).width < kBreakpointSmall;
+    final systemBottomInset = MediaQuery.viewPaddingOf(context).bottom;
 
     return Container(
       width: double.infinity,
@@ -86,14 +87,14 @@ class _SidebarWidgetState extends State<SidebarWidget> {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 28.0),
-              child: Center(
+          padding: EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 16.0 + systemBottomInset),
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 28.0),
+                child: Center(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12.0),
                   child: Image.asset(
@@ -104,39 +105,47 @@ class _SidebarWidgetState extends State<SidebarWidget> {
                 ),
               ),
             ),
-            _SidebarItem(
-              icon: Icons.dashboard_rounded,
-              label: 'Dashboard',
-              active: route == 'Dashboard',
-              onTap: () =>
-                  _push(DashboardWidget.routeName, withRouteParam: true),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _SidebarItem(
+                      icon: Icons.dashboard_rounded,
+                      label: 'Dashboard',
+                      active: route == 'Dashboard',
+                      onTap: () =>
+                          _push(DashboardWidget.routeName, withRouteParam: true),
+                    ),
+                    _SidebarItem(
+                      icon: Icons.calendar_month_rounded,
+                      label: 'Calendário de Aulas',
+                      active: route == 'Aulas',
+                      onTap: () => _push(CalendarioAulasListaWidget.routeName,
+                          withRouteParam: true),
+                    ),
+                    _SidebarItem(
+                      icon: Icons.school_outlined,
+                      label: 'Mural',
+                      active: route == 'Treinamentos',
+                      onTap: () => _push(MuralWidget.routeName),
+                    ),
+                    _SidebarItem(
+                      icon: Icons.chat_rounded,
+                      label: 'Chat',
+                      active: route == 'Chat',
+                      onTap: () => _push(ChatWidget.routeName),
+                    ),
+                    _SidebarItem(
+                      icon: Icons.attach_money_rounded,
+                      label: 'Financeiro',
+                      active: route == 'Financeiro',
+                      onTap: () => _push(FinanceiroWidget.routeName),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            _SidebarItem(
-              icon: Icons.calendar_month_rounded,
-              label: 'Calendário de Aulas',
-              active: route == 'Aulas',
-              onTap: () => _push(CalendarioAulasListaWidget.routeName,
-                  withRouteParam: true),
-            ),
-            _SidebarItem(
-              icon: Icons.school_outlined,
-              label: 'Mural',
-              active: route == 'Treinamentos',
-              onTap: () => _push(MuralWidget.routeName),
-            ),
-            _SidebarItem(
-              icon: Icons.chat_rounded,
-              label: 'Chat',
-              active: route == 'Chat',
-              onTap: () => _push(ChatWidget.routeName),
-            ),
-            _SidebarItem(
-              icon: Icons.attach_money_rounded,
-              label: 'Financeiro',
-              active: route == 'Financeiro',
-              onTap: () => _push(FinanceiroWidget.routeName),
-            ),
-            const Spacer(),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: Divider(

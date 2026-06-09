@@ -1,5 +1,6 @@
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/supabase/supabase.dart';
+import '/componentes/bottom_nav_mobile/bottom_nav_mobile_widget.dart';
 import '/componentes/sidebar/sidebar_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -161,6 +162,7 @@ class _MuralWidgetState extends State<MuralWidget> {
           backgroundColor: theme.primaryBackground,
           child: const SidebarWidget(route: 'Treinamentos'),
         ),
+        bottomNavigationBar: const BottomNavMobileWidget(active: 'Mural'),
         body: SafeArea(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,

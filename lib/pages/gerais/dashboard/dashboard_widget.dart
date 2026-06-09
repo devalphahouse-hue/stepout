@@ -1,6 +1,7 @@
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/schema/structs/index.dart';
 import '/backend/supabase/supabase.dart';
+import '/componentes/bottom_nav_mobile/bottom_nav_mobile_widget.dart';
 import '/componentes/sidebar/sidebar_widget.dart';
 import '/componentes/sidebar_slim/sidebar_slim_widget.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
@@ -70,6 +71,8 @@ class _DashboardWidgetState extends State<DashboardWidget> {
           backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
           child: SidebarWidget(route: 'Dashboard'),
         ),
+        bottomNavigationBar:
+            const BottomNavMobileWidget(active: 'Dashboard'),
         body: SafeArea(
           top: true,
           child: Row(

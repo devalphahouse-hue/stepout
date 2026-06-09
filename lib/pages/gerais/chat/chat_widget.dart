@@ -3,6 +3,7 @@ import '/backend/api_requests/api_calls.dart';
 import '/backend/schema/structs/index.dart';
 import '/backend/supabase/supabase.dart';
 import '/componentes/nova_conversa/nova_conversa_widget.dart';
+import '/componentes/bottom_nav_mobile/bottom_nav_mobile_widget.dart';
 import '/componentes/sidebar/sidebar_widget.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -175,6 +176,9 @@ class _ChatWidgetState extends State<ChatWidget> {
           backgroundColor: theme.primaryBackground,
           child: const SidebarWidget(route: 'Chat'),
         ),
+        bottomNavigationBar: hasSelection && !isWide
+            ? null
+            : const BottomNavMobileWidget(active: 'Chat'),
         body: SafeArea(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -822,45 +826,43 @@ class _MessageBubble extends StatelessWidget {
       bottomRight: Radius.circular(isOwn ? (isGrouped ? 16.0 : 4.0) : 16.0),
     );
 
-    final bubble = Flexible(
-      child: Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 14.0, vertical: 10.0),
-        decoration: BoxDecoration(
-          color: bubbleColor,
-          borderRadius: radius,
-          border: isOwn
-              ? null
-              : Border.all(color: theme.alternate, width: 1.0),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment:
-              isOwn ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-          children: [
-            Text(
-              message.conteudo ?? '',
-              style: theme.bodyMedium
-                  .override(
-                    font: GoogleFonts.inter(),
-                    color: textColor,
-                    fontSize: 15.0,
-                    letterSpacing: 0.0,
-                  )
-                  .copyWith(height: 1.35),
+    final bubble = Container(
+      padding:
+          const EdgeInsets.symmetric(horizontal: 14.0, vertical: 10.0),
+      decoration: BoxDecoration(
+        color: bubbleColor,
+        borderRadius: radius,
+        border: isOwn
+            ? null
+            : Border.all(color: theme.alternate, width: 1.0),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment:
+            isOwn ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: [
+          Text(
+            message.conteudo ?? '',
+            style: theme.bodyMedium
+                .override(
+                  font: GoogleFonts.inter(),
+                  color: textColor,
+                  fontSize: 15.0,
+                  letterSpacing: 0.0,
+                )
+                .copyWith(height: 1.35),
+          ),
+          const SizedBox(height: 4.0),
+          Text(
+            _formatTime(message.createdAt),
+            style: theme.bodySmall.override(
+              font: GoogleFonts.inter(),
+              fontSize: 11.0,
+              color: timeColor,
+              letterSpacing: 0.0,
             ),
-            const SizedBox(height: 4.0),
-            Text(
-              _formatTime(message.createdAt),
-              style: theme.bodySmall.override(
-                font: GoogleFonts.inter(),
-                fontSize: 11.0,
-                color: timeColor,
-                letterSpacing: 0.0,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
 
