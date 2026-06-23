@@ -14,8 +14,8 @@ class MobileWebGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TEMP: trava de mobile-web desativada para testes responsivos.
-    // Para reativar, restaure: return kIsWeb ? MobileWebGatePlatform(child: child) : child;
-    return child;
+    // Na web, em celular/tablet, mostra o convite para baixar o app nativo.
+    // No app nativo (Android/iOS) e no desktop web, segue normal.
+    return kIsWeb ? MobileWebGatePlatform(child: child) : child;
   }
 }
