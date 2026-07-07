@@ -1,4 +1,14 @@
-// Web implementation using dart:html and dart:ui_web
+// Web implementation using the OFFICIAL JaaS IFrame API (JitsiMeetExternalAPI).
+//
+// Antes desta versão o widget montava um <iframe> manualmente apontando pra
+// https://8x8.vc/<appId>/<room>?jwt=... e escutava postMessage cru — formato
+// interno NÃO documentado do Jitsi, sujeito a quebrar em qualquer release do
+// JaaS. Agora seguimos o modelo documentado (developer.8x8.com/jaas →
+// iframe-api-integration): carregamos o script por tenant
+// https://8x8.vc/<AppID>/external_api.js e instanciamos JitsiMeetExternalAPI,
+// que nos dá eventos oficiais (videoConferenceJoined/Left, readyToClose,
+// errorOccurred, passwordRequired) e comandos (executeCommand('hangup'),
+// dispose()).
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -6,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'dart:ui_web' as ui_web;
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
+import 'dart:js_util' as js_util;
 
 class JaasMeetingViewPlatform extends StatefulWidget {
   const JaasMeetingViewPlatform({
@@ -22,6 +33,7 @@ class JaasMeetingViewPlatform extends StatefulWidget {
     this.displayName = '',
     this.email = '',
     this.enableSpaNavigationListeners = false,
+    this.endSignal = 0,
     this.onJwtRefreshNeeded,
   });
 
@@ -37,6 +49,10 @@ class JaasMeetingViewPlatform extends StatefulWidget {
   final String displayName;
   final String email;
   final bool enableSpaNavigationListeners;
+
+  /// SINAL para encerrar a call. Sempre que esse número mudar, encerra a call
+  /// graciosamente (executeCommand('hangup') → readyToClose → dispose()).
+  final int endSignal;
   final VoidCallback? onJwtRefreshNeeded;
 
   @override
@@ -47,11 +63,16 @@ class JaasMeetingViewPlatform extends StatefulWidget {
 class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
   late final String _viewType;
 
-  html.IFrameElement? _iframe;
-  bool _iframeLoaded = false;
+  /// Container onde o external_api.js cria o iframe (parentNode).
+  html.DivElement? _container;
+
+  /// Instância JS de JitsiMeetExternalAPI (null enquanto não criada).
+  Object? _api;
+
+  /// Impede que rebuilds do StreamBuilder recriem a conferência.
+  bool _meetingLoaded = false;
 
   html.EventListener? _beforeUnloadListener;
-  html.EventListener? _messageListener;
   StreamSubscription<html.PopStateEvent>? _popStateSub;
   StreamSubscription<html.Event>? _hashChangeSub;
 
@@ -63,13 +84,21 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
   bool _intentionalLeave = false;
   int _reconnectCount = 0;
   Timer? _reconnectTimer;
+  // Backoff progressivo: 2s, 4s, 6s, ... até 20s. Máximo de 10 tentativas.
   static const int _maxReconnectAttempts = 10;
 
   // Delay antes de forçar reconexão (dá tempo pro Jitsi ICE restart)
   Timer? _reconnectDelayTimer;
 
+  // Fallback caso o readyToClose não chegue depois do hangup
+  Timer? _hangupFallbackTimer;
+
   // Renovação automática do JWT antes de expirar
   Timer? _jwtRefreshTimer;
+
+  // Token foi rejeitado (expirado/inválido) — reconectar assim que o pai
+  // entregar um JWT novo via onJwtRefreshNeeded.
+  bool _reconnectAfterJwtRefresh = false;
 
   // Listener de visibilidade da aba
   html.EventListener? _visibilityListener;
@@ -77,19 +106,28 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
   // Listener de reconexão automática quando internet volta
   html.EventListener? _onlineListener;
 
+  /// Cache do carregamento do external_api.js por tenant (evita injetar o
+  /// <script> duas vezes quando há mais de uma instância do widget).
+  static final Map<String, Future<void>> _scriptLoads = {};
+
   @override
   void initState() {
     super.initState();
 
     _syncRoomKeys();
-    _cleanupOrphanIframesForThisRoom(skip: null);
+    _cleanupOrphansForThisRoom(skipCurrent: false);
 
     _viewType = 'jaas-iframe-${DateTime.now().microsecondsSinceEpoch}';
-    _iframe = _buildIFrame(_buildSrc());
+    _container = html.DivElement()
+      ..style.width = '100%'
+      ..style.height = '100%'
+      ..style.background = '#000'
+      ..setAttribute('data-jaas-container', 'true')
+      ..setAttribute('data-room', _roomKey);
 
     ui_web.platformViewRegistry.registerViewFactory(
       _viewType,
-      (int _) => _iframe!,
+      (int _) => _container!,
     );
 
     _beforeUnloadListener = (event) {
@@ -97,10 +135,6 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
           'Você está em uma aula ao vivo. Deseja realmente sair?';
     };
     html.window.addEventListener('beforeunload', _beforeUnloadListener!);
-
-    // Escuta eventos postMessage do iframe JaaS para detectar desconexões
-    _messageListener = (event) => _onJaasMessage(event);
-    html.window.addEventListener('message', _messageListener!);
 
     // Detecta quando a aba volta ao foreground para resetar reconexão
     _visibilityListener = (_) {
@@ -112,7 +146,7 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
     html.document.addEventListener('visibilitychange', _visibilityListener!);
 
     // Quando internet volta, apenas reseta o contador.
-    // NÃO recarrega o iframe — o Jitsi tenta ICE restart automaticamente.
+    // NÃO recria a conferência — o Jitsi tenta ICE restart automaticamente.
     _onlineListener = (_) {
       if (_disposed || _intentionalLeave) return;
       _reconnectCount = 0;
@@ -124,12 +158,192 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
       _hashChangeSub =
           html.window.onHashChange.listen((_) => _leaveMeeting());
     }
+
+    // Só cria a conferência quando o JWT já está disponível — evita o flash
+    // de "authentication failed" que o iframe com jwt vazio causava.
+    if (widget.jwt.isNotEmpty) {
+      _meetingLoaded = true;
+      _createApi();
+    }
   }
 
   void _syncRoomKeys() {
     _roomKey = '${widget.appId}__${widget.roomShort}';
     _iframeDomId = 'jaas_iframe_${_roomKey}';
   }
+
+  // ──────────────────────────── external_api.js ────────────────────────────
+
+  /// Garante que o script oficial por tenant está carregado
+  /// (https://8x8.vc/<AppID>/external_api.js — forma documentada pelo JaaS).
+  Future<void> _ensureExternalApiScript() {
+    if (js_util.hasProperty(html.window, 'JitsiMeetExternalAPI')) {
+      return Future<void>.value();
+    }
+    return _scriptLoads.putIfAbsent(widget.appId, () {
+      final completer = Completer<void>();
+      final script = html.ScriptElement()
+        ..src = 'https://8x8.vc/${widget.appId}/external_api.js'
+        ..async = true;
+      script.onLoad.first.then((_) {
+        if (!completer.isCompleted) completer.complete();
+      });
+      script.onError.first.then((_) {
+        // Remove do cache pra próxima tentativa reinjetar o script
+        _scriptLoads.remove(widget.appId);
+        script.remove();
+        if (!completer.isCompleted) {
+          completer.completeError(
+              StateError('Falha ao carregar external_api.js'));
+        }
+      });
+      html.document.head!.append(script);
+      return completer.future;
+    });
+  }
+
+  /// Cria (ou recria) a instância JitsiMeetExternalAPI dentro do container.
+  /// Recriar a instância é também o mecanismo de reconexão — sempre usa o
+  /// widget.jwt ATUAL, então uma reconexão pós-refresh já entra com token novo.
+  Future<void> _createApi() async {
+    if (_disposed || _intentionalLeave || widget.jwt.isEmpty) return;
+
+    try {
+      await _ensureExternalApiScript();
+    } catch (_) {
+      // Script não carregou (rede fora?) — tenta de novo com backoff
+      _attemptReconnect();
+      return;
+    }
+    if (_disposed || _intentionalLeave || _container == null) return;
+
+    _destroyApi();
+
+    final options = js_util.newObject();
+    js_util.setProperty(
+        options, 'roomName', '${widget.appId}/${widget.roomShort}');
+    js_util.setProperty(options, 'jwt', widget.jwt);
+    js_util.setProperty(options, 'parentNode', _container);
+    js_util.setProperty(options, 'width', '100%');
+    js_util.setProperty(options, 'height', '100%');
+    js_util.setProperty(
+        options, 'configOverwrite', js_util.jsify(_buildConfigOverwrite()));
+    if (widget.displayName.isNotEmpty || widget.email.isNotEmpty) {
+      js_util.setProperty(
+        options,
+        'userInfo',
+        js_util.jsify(<String, String>{
+          if (widget.displayName.isNotEmpty) 'displayName': widget.displayName,
+          if (widget.email.isNotEmpty) 'email': widget.email,
+        }),
+      );
+    }
+
+    try {
+      final ctor = js_util.getProperty(html.window, 'JitsiMeetExternalAPI');
+      _api = js_util.callConstructor(ctor as Object, ['8x8.vc', options]);
+    } catch (_) {
+      _attemptReconnect();
+      return;
+    }
+
+    _tagIframe();
+    _addApiListeners();
+    _scheduleJwtRefresh(widget.jwt);
+  }
+
+  /// Marca o iframe criado pelo external_api com id/data-* estáveis, pra
+  /// limpeza de órfãos funcionar entre instâncias (e com a versão antiga).
+  void _tagIframe() {
+    try {
+      final f = js_util.callMethod(_api!, 'getIFrame', []);
+      if (f is html.IFrameElement) {
+        f
+          ..id = _iframeDomId
+          ..setAttribute('data-jaas', 'true')
+          ..setAttribute('data-room', _roomKey);
+      }
+    } catch (_) {}
+  }
+
+  void _on(String event, void Function(dynamic) handler) {
+    try {
+      js_util.callMethod(
+          _api!, 'addListener', [event, js_util.allowInterop(handler)]);
+    } catch (_) {}
+  }
+
+  void _addApiListeners() {
+    // Entrou na sala — Jitsi está saudável, zera o estado de reconexão
+    _on('videoConferenceJoined', (_) {
+      if (_disposed) return;
+      _reconnectCount = 0;
+      _reconnectDelayTimer?.cancel();
+    });
+
+    // Saiu da sala (queda de rede, kick, ou hangup pelo botão do Jitsi).
+    // Dá 15s pro ICE restart interno do Jitsi antes de forçar reconexão —
+    // se videoConferenceJoined chegar nesse meio tempo, o timer é cancelado.
+    _on('videoConferenceLeft', (_) => _scheduleDelayedReconnect());
+
+    // Hangup concluído. Se foi o app que encerrou (endSignal/navegação),
+    // este é o momento sancionado pra dar dispose(). Caso contrário, trata
+    // como desconexão (mesmo fluxo do videoConferenceLeft).
+    _on('readyToClose', (_) {
+      if (_disposed) return;
+      if (_intentionalLeave) {
+        _hangupFallbackTimer?.cancel();
+        _destroyApi();
+        return;
+      }
+      _scheduleDelayedReconnect();
+    });
+
+    // Erro oficial do Jitsi. isFatal = o Jitsi mostrou o overlay de
+    // reconexão dele; nosso backoff entra como reforço. Erros de token
+    // pedem refresh do JWT antes de reconectar.
+    _on('errorOccurred', (data) {
+      if (_disposed || _intentionalLeave) return;
+      try {
+        final err = js_util.getProperty(data as Object, 'error') ?? data;
+        final name =
+            (js_util.getProperty(err as Object, 'name') ?? '').toString();
+        final message =
+            (js_util.getProperty(err, 'message') ?? '').toString();
+        final isFatal = js_util.getProperty(err, 'isFatal') == true;
+
+        final tokenProblem = name.toLowerCase().contains('token') ||
+            message.toLowerCase().contains('token');
+        if (tokenProblem) {
+          _reconnectAfterJwtRefresh = true;
+          widget.onJwtRefreshNeeded?.call();
+          return;
+        }
+        if (isFatal) {
+          _scheduleDelayedReconnect();
+        }
+      } catch (_) {}
+    });
+
+    // JWT rejeitado no (re)join — pede token novo; a reconexão acontece no
+    // didUpdateWidget quando o pai entregar o JWT renovado.
+    _on('passwordRequired', (_) {
+      if (_disposed || _intentionalLeave) return;
+      _reconnectAfterJwtRefresh = true;
+      widget.onJwtRefreshNeeded?.call();
+    });
+  }
+
+  void _destroyApi() {
+    if (_api != null) {
+      try {
+        js_util.callMethod(_api!, 'dispose', []);
+      } catch (_) {}
+      _api = null;
+    }
+  }
+
+  // ──────────────────────────── JWT lifecycle ────────────────────────────
 
   /// Decodifica o payload do JWT para extrair o timestamp de expiração (campo `exp`).
   int? _getJwtExp(String jwt) {
@@ -177,60 +391,26 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
     });
   }
 
-  /// Processa mensagens postMessage vindas do iframe JaaS/Jitsi.
-  /// O Jitsi envia eventos como videoConferenceLeft, readyToClose, etc.
-  void _onJaasMessage(html.Event rawEvent) {
+  // ──────────────────────────── Reconexão ────────────────────────────
+
+  /// Dá 15s pro Jitsi tentar ICE restart interno antes de forçar reconexão.
+  void _scheduleDelayedReconnect() {
     if (_disposed || _intentionalLeave) return;
-
-    try {
-      final event = rawEvent as html.MessageEvent;
-
-      // Aceitar apenas mensagens da origem 8x8.vc
-      final origin = event.origin;
-      if (origin == null || !origin.contains('8x8.vc')) return;
-
-      // Tentar decodificar os dados da mensagem
-      dynamic data = event.data;
-      if (data is String) {
-        try {
-          data = json.decode(data);
-        } catch (_) {
-          return;
-        }
-      }
-
-      if (data is! Map) return;
-
-      final eventName = data['event'] ?? data['type'] ?? '';
-
-      if (eventName == 'video-conference-left' ||
-          eventName == 'videoConferenceLeft' ||
-          eventName == 'conference-terminated' ||
-          eventName == 'readyToClose') {
-        // Dar 15s para o Jitsi tentar ICE restart interno antes de forçar reconexão
-        _reconnectDelayTimer?.cancel();
-        _reconnectDelayTimer = Timer(const Duration(seconds: 15), () {
-          if (_disposed || _intentionalLeave) return;
-          _attemptReconnect();
-        });
-      }
-
-      // Jitsi se recuperou sozinho (ICE restart funcionou) — cancelar reconexão forçada
-      if (eventName == 'video-conference-joined' ||
-          eventName == 'videoConferenceJoined') {
-        _reconnectCount = 0;
-        _reconnectDelayTimer?.cancel();
-      }
-    } catch (_) {}
+    _reconnectDelayTimer?.cancel();
+    _reconnectDelayTimer = Timer(const Duration(seconds: 15), () {
+      if (_disposed || _intentionalLeave) return;
+      _attemptReconnect();
+    });
   }
 
   /// Tenta reconectar ao JaaS após desconexão não intencional.
-  /// Usa backoff progressivo: 2s, 4s, 6s, 8s, 10s.
-  /// Máximo de 5 tentativas.
+  /// Backoff progressivo de 2s em 2s (2s, 4s, ... 20s), máximo de
+  /// [_maxReconnectAttempts] tentativas. Reconectar = recriar a instância
+  /// JitsiMeetExternalAPI com o JWT atual (pós-refresh entra com token novo).
   void _attemptReconnect() {
     if (_disposed || _intentionalLeave) return;
     if (_reconnectCount >= _maxReconnectAttempts) return;
-    if (_iframe == null || widget.jwt.isEmpty) return;
+    if (widget.jwt.isEmpty) return;
 
     _reconnectCount++;
     final delaySec = _reconnectCount * 2;
@@ -238,12 +418,7 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
     _reconnectTimer?.cancel();
     _reconnectTimer = Timer(Duration(seconds: delaySec), () {
       if (_disposed || _intentionalLeave) return;
-      if (_iframe == null) return;
-
-      // Recarrega o iframe com a mesma URL
-      try {
-        _iframe!.src = _buildSrc();
-      } catch (_) {}
+      _createApi();
     });
   }
 
@@ -251,40 +426,50 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
   void didUpdateWidget(covariant JaasMeetingViewPlatform oldWidget) {
     super.didUpdateWidget(oldWidget);
 
+    // Encerra a call graciosamente quando endSignal mudar
+    if (widget.endSignal != oldWidget.endSignal) {
+      _leaveMeeting();
+      return;
+    }
+
     final roomChanged = oldWidget.appId != widget.appId ||
         oldWidget.roomShort != widget.roomShort;
 
+    // Só cria a conferência na PRIMEIRA vez que o JWT fica disponível.
+    // _meetingLoaded impede que rebuilds do StreamBuilder a recriem.
     final jwtBecameAvailable =
-        oldWidget.jwt.isEmpty && widget.jwt.isNotEmpty && !_iframeLoaded;
+        oldWidget.jwt.isEmpty && widget.jwt.isNotEmpty && !_meetingLoaded;
 
     if (roomChanged) {
       _syncRoomKeys();
-      _cleanupOrphanIframesForThisRoom(skip: _iframe);
-      _iframeLoaded = false;
+      _cleanupOrphansForThisRoom(skipCurrent: true);
+      _meetingLoaded = false;
       _reconnectCount = 0;
-
-      if (_iframe != null) {
-        _iframe!
-          ..id = _iframeDomId
-          ..setAttribute('data-room', _roomKey);
-      }
+      _container?.setAttribute('data-room', _roomKey);
     }
 
-    if ((roomChanged || jwtBecameAvailable) && _iframe != null) {
-      _iframe!.src = _buildSrc();
-      _iframeLoaded = true;
+    if (roomChanged || jwtBecameAvailable) {
+      _meetingLoaded = true;
+      _createApi();
     }
 
     // JWT foi renovado com um token diferente (refresh antes de expirar).
-    // NÃO recarrega o iframe — o JWT atual continua válido na sessão Jitsi.
+    // NÃO recria a conferência — o JWT atual continua válido na sessão Jitsi.
     // O novo JWT será usado automaticamente em caso de reconexão futura.
-    final jwtRefreshed = _iframeLoaded &&
+    final jwtRefreshed = _meetingLoaded &&
         widget.jwt.isNotEmpty &&
         oldWidget.jwt.isNotEmpty &&
         oldWidget.jwt != widget.jwt;
 
     if (jwtRefreshed) {
       _reconnectCount = 0;
+
+      // Exceção: o token anterior foi REJEITADO (expirado/inválido) — aqui a
+      // sessão já caiu, então reconecta imediatamente com o token novo.
+      if (_reconnectAfterJwtRefresh) {
+        _reconnectAfterJwtRefresh = false;
+        _createApi();
+      }
     }
 
     if ((jwtBecameAvailable || jwtRefreshed) && widget.jwt.isNotEmpty) {
@@ -292,11 +477,18 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
     }
   }
 
-  void _cleanupOrphanIframesForThisRoom({html.IFrameElement? skip}) {
+  // ──────────────────────────── Limpeza ────────────────────────────
+
+  /// Remove iframes/containers órfãos desta sala deixados por instâncias
+  /// anteriores (inclui o formato da implementação antiga, pré-external_api).
+  void _cleanupOrphansForThisRoom({required bool skipCurrent}) {
     try {
+      final currentIframe = _currentIframe();
+
       final existingById = html.document.getElementById(_iframeDomId);
       if (existingById is html.IFrameElement) {
-        final sameAsCurrent = identical(existingById, skip);
+        final sameAsCurrent =
+            skipCurrent && identical(existingById, currentIframe);
         if (!sameAsCurrent) {
           try {
             existingById.src = 'about:blank';
@@ -310,9 +502,7 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
       );
       for (final n in nodes) {
         if (n is html.IFrameElement) {
-          final sameAsCurrent = identical(n, skip);
-          if (sameAsCurrent) continue;
-
+          if (skipCurrent && identical(n, currentIframe)) continue;
           try {
             n.src = 'about:blank';
           } catch (_) {}
@@ -321,122 +511,101 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
           n.remove();
         }
       }
+
+      // Containers órfãos de instâncias anteriores deste widget
+      final containers = html.document.querySelectorAll(
+        'div[data-jaas-container="true"][data-room="$_roomKey"]',
+      );
+      for (final c in containers) {
+        if (identical(c, _container)) continue;
+        c.remove();
+      }
     } catch (_) {}
   }
 
+  html.IFrameElement? _currentIframe() {
+    if (_api == null) return null;
+    try {
+      final f = js_util.callMethod(_api!, 'getIFrame', []);
+      if (f is html.IFrameElement) return f;
+    } catch (_) {}
+    return null;
+  }
+
+  /// Encerramento intencional (endSignal, navegação SPA, dispose do widget):
+  /// manda hangup oficial e espera o readyToClose pra dar dispose() — com
+  /// fallback de 3s caso o evento não chegue.
   void _leaveMeeting() {
     _intentionalLeave = true;
     _reconnectTimer?.cancel();
     _reconnectDelayTimer?.cancel();
 
-    try {
-      _cleanupOrphanIframesForThisRoom(skip: null);
+    if (_api != null) {
+      try {
+        js_util.callMethod(_api!, 'executeCommand', ['hangup']);
+      } catch (_) {}
+      _hangupFallbackTimer?.cancel();
+      _hangupFallbackTimer = Timer(const Duration(seconds: 3), _destroyApi);
+    }
 
-      if (_iframe != null) {
-        try {
-          _iframe!.src = 'about:blank';
-        } catch (_) {}
-        try {
-          _iframe!.remove();
-        } catch (_) {}
-        _iframe = null;
-      }
-    } catch (_) {}
+    _cleanupOrphansForThisRoom(skipCurrent: true);
   }
 
-  html.IFrameElement _buildIFrame(String src) {
-    final iframe = html.IFrameElement()
-      ..id = _iframeDomId
-      ..src = src
-      ..style.border = '0'
-      ..style.width = '100%'
-      ..style.height = '100%'
-      ..allow = 'camera; microphone; fullscreen; display-capture; autoplay'
-      ..setAttribute('allowfullscreen', 'true')
-      ..setAttribute(
-        'sandbox',
-        'allow-same-origin allow-scripts allow-forms '
-            'allow-modals allow-popups allow-popups-to-escape-sandbox '
-            'allow-presentation',
-      )
-      ..referrerPolicy = 'no-referrer-when-downgrade'
-      ..setAttribute('data-jaas', 'true')
-      ..setAttribute('data-room', _roomKey);
+  // ──────────────────────────── configOverwrite ────────────────────────────
 
-    return iframe;
-  }
-
-  String _buildSrc() {
-    final uri = Uri(
-      scheme: 'https',
-      host: '8x8.vc',
-      path: '${widget.appId}/${widget.roomShort}',
-      queryParameters: <String, String>{'jwt': widget.jwt},
-      fragment: _buildFragment(),
-    );
-    return uri.toString();
-  }
-
-  String _buildFragment() {
-    final params = <String, String>{
-      // Sempre mostra tela de seleção de mic/câmera antes de entrar
-      'config.prejoinPageEnabled': 'true',
-      'config.startWithAudioMuted': widget.audioMuted ? 'true' : 'false',
-      'config.startWithVideoMuted': widget.videoMuted ? 'true' : 'false',
-      'config.defaultLanguage': widget.lang,
-      'config.toolbarConfig.alwaysVisible': 'true',
-      'config.toolbarConfig.autoHideTimeout': '0',
+  Map<String, dynamic> _buildConfigOverwrite() {
+    return <String, dynamic>{
+      // Tela de seleção de mic/câmera antes de entrar (formato atual;
+      // prejoinPageEnabled é o legado deprecated)
+      'prejoinConfig': {'enabled': widget.prejoin},
+      'startWithAudioMuted': widget.audioMuted,
+      'startWithVideoMuted': widget.videoMuted,
+      'defaultLanguage': widget.lang,
+      'toolbarConfig': {'alwaysVisible': true, 'autoHideTimeout': 0},
 
       // ── Rede & Conexão ──
       // Desabilita P2P — JVB relay é mais confiável no JaaS
-      'config.p2p.enabled': 'false',
+      'p2p': {'enabled': false},
       // ICE restart automático em caso de queda de conexão
-      'config.enableIceRestart': 'true',
+      'enableIceRestart': true,
       // WebSocket é mais confiável que DataChannel para o bridge
-      'config.openBridgeChannel': 'websocket',
+      'openBridgeChannel': 'websocket',
 
       // ── Áudio — processamento robusto sem redução involuntária ──
       // Detecta quando não há áudio sendo transmitido (aviso útil)
-      'config.enableNoAudioDetection': 'true',
+      'enableNoAudioDetection': true,
       // Desabilitado: reduzia ganho do mic ao detectar ruído ambiente
-      'config.enableNoisyMicDetection': 'false',
+      'enableNoisyMicDetection': false,
       // AGC ativo: faz boost de mics baixos automaticamente
-      'config.disableAGC': 'false',
+      'disableAGC': false,
       // Codec Opus otimizado: bitrate alto para voz clara
-      'config.audioQuality.opusMaxAverageBitrate': '32000',
+      'audioQuality': {'opusMaxAverageBitrate': 32000},
 
       // ── Vídeo — degradação suave como o Meet ──
       // Resolução ideal 720p, mínimo 180p em rede ruim
-      'config.resolution': '720',
-      'config.constraints.video.height.ideal': '720',
-      'config.constraints.video.height.max': '720',
-      'config.constraints.video.height.min': '180',
+      'resolution': 720,
+      'constraints': {
+        'video': {
+          'height': {'ideal': 720, 'max': 720, 'min': 180},
+        },
+      },
       // Simulcast: envia múltiplas qualidades, servidor escolhe a melhor
-      'config.enableSimulcast': 'true',
+      'enableSimulcast': true,
       // Suspende camadas de vídeo não assistidas (economiza banda)
-      'config.enableLayerSuspension': 'true',
+      'enableLayerSuspension': true,
       // Limita streams de vídeo recebidos
-      'config.channelLastN': '4',
+      'channelLastN': 4,
       // Bitrate inicial baixo — sobe conforme rede permite (como o Meet)
-      'config.startBitrate': '800',
+      'startBitrate': 800,
       // Adaptação automática de qualidade baseada na largura de banda
-      'config.enableAdaptiveVideoQuality': 'true',
+      'enableAdaptiveVideoQuality': true,
 
       // ── Compatibilidade cross-browser (Edge, Firefox) ──
       // VP8 é o codec mais compatível entre navegadores
-      'config.preferredCodec': 'VP8',
+      'preferredCodec': 'VP8',
       // Unified Plan SDP para compatibilidade com Edge
-      'config.enableUnifiedOnChrome': 'true',
-
-      if (widget.displayName.isNotEmpty)
-        'userInfo.displayName': widget.displayName,
-      if (widget.email.isNotEmpty) 'userInfo.email': widget.email,
+      'enableUnifiedOnChrome': true,
     };
-
-    return params.entries
-        .map((e) =>
-            '${Uri.encodeQueryComponent(e.key)}=${Uri.encodeQueryComponent(e.value)}')
-        .join('&');
   }
 
   @override
@@ -444,27 +613,34 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
     _disposed = true;
     _reconnectTimer?.cancel();
     _reconnectDelayTimer?.cancel();
+    _hangupFallbackTimer?.cancel();
     _jwtRefreshTimer?.cancel();
 
     if (_beforeUnloadListener != null) {
-      html.window
-          .removeEventListener('beforeunload', _beforeUnloadListener!);
-    }
-    if (_messageListener != null) {
-      html.window.removeEventListener('message', _messageListener!);
+      html.window.removeEventListener('beforeunload', _beforeUnloadListener!);
     }
 
     _popStateSub?.cancel();
     _hashChangeSub?.cancel();
 
     if (_visibilityListener != null) {
-      html.document.removeEventListener('visibilitychange', _visibilityListener!);
+      html.document
+          .removeEventListener('visibilitychange', _visibilityListener!);
     }
     if (_onlineListener != null) {
       html.window.removeEventListener('online', _onlineListener!);
     }
 
-    _leaveMeeting();
+    // No unmount o platform view some junto — hangup + dispose imediatos
+    _intentionalLeave = true;
+    if (_api != null) {
+      try {
+        js_util.callMethod(_api!, 'executeCommand', ['hangup']);
+      } catch (_) {}
+      _destroyApi();
+    }
+    _cleanupOrphansForThisRoom(skipCurrent: false);
+    _container = null;
 
     super.dispose();
   }

@@ -28,6 +28,7 @@ class JaasMeetingView extends StatelessWidget {
     this.displayName = '',
     this.email = '',
     this.enableSpaNavigationListeners = false,
+    this.endSignal = 0,
     this.onJwtRefreshNeeded,
   });
 
@@ -43,6 +44,9 @@ class JaasMeetingView extends StatelessWidget {
   final String displayName;
   final String email;
   final bool enableSpaNavigationListeners;
+
+  /// SINAL para encerrar a call. Sempre que esse número mudar, encerra a call.
+  final int endSignal;
   final VoidCallback? onJwtRefreshNeeded;
 
   @override
@@ -60,6 +64,7 @@ class JaasMeetingView extends StatelessWidget {
       displayName: displayName,
       email: email,
       enableSpaNavigationListeners: enableSpaNavigationListeners,
+      endSignal: endSignal,
       onJwtRefreshNeeded: onJwtRefreshNeeded,
     );
   }
