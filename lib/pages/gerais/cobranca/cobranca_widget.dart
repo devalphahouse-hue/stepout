@@ -106,6 +106,23 @@ class _CobrancaWidgetState extends State<CobrancaWidget> {
     super.dispose();
   }
 
+  bool get _enderecoCompleto =>
+      (_model.textFieldCEPTextController1?.text.trim().isNotEmpty ?? false) &&
+      (_model.textFieldPaisTextController1?.text.trim().isNotEmpty ??
+          false) &&
+      (_model.textFieldEnderecoTextController1?.text.trim().isNotEmpty ??
+          false) &&
+      (_model.textFieldBairroTextController1?.text.trim().isNotEmpty ??
+          false) &&
+      (_model.textFieldNumeroTextController1?.text.trim().isNotEmpty ??
+          false) &&
+      (_model.textFieldCidadeTextController1?.text.trim().isNotEmpty ??
+          false) &&
+      (_model.textFieldUFTextController1?.text.trim().isNotEmpty ?? false);
+
+  bool get _podeSalvar =>
+      (_model.checkboxValue ?? false) && _enderecoCompleto;
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<CobrancasRow>>(
@@ -1415,6 +1432,8 @@ class _CobrancaWidgetState extends State<CobrancaWidget> {
                                                                           ),
                                                                           focusNode:
                                                                               _model.textFieldPaisFocusNode1,
+                                                                          onChanged: (_) =>
+                                                                              safeSetState(() {}),
                                                                           autofocus:
                                                                               false,
                                                                           obscureText:
@@ -1524,6 +1543,8 @@ class _CobrancaWidgetState extends State<CobrancaWidget> {
                                                                           ),
                                                                           focusNode:
                                                                               _model.textFieldEnderecoFocusNode1,
+                                                                          onChanged: (_) =>
+                                                                              safeSetState(() {}),
                                                                           autofocus:
                                                                               false,
                                                                           obscureText:
@@ -1624,6 +1645,8 @@ class _CobrancaWidgetState extends State<CobrancaWidget> {
                                                                           ),
                                                                           focusNode:
                                                                               _model.textFieldBairroFocusNode1,
+                                                                          onChanged: (_) =>
+                                                                              safeSetState(() {}),
                                                                           autofocus:
                                                                               false,
                                                                           obscureText:
@@ -1733,6 +1756,8 @@ class _CobrancaWidgetState extends State<CobrancaWidget> {
                                                                           ),
                                                                           focusNode:
                                                                               _model.textFieldNumeroFocusNode1,
+                                                                          onChanged: (_) =>
+                                                                              safeSetState(() {}),
                                                                           autofocus:
                                                                               false,
                                                                           obscureText:
@@ -1933,6 +1958,8 @@ class _CobrancaWidgetState extends State<CobrancaWidget> {
                                                                           ),
                                                                           focusNode:
                                                                               _model.textFieldCidadeFocusNode1,
+                                                                          onChanged: (_) =>
+                                                                              safeSetState(() {}),
                                                                           autofocus:
                                                                               false,
                                                                           obscureText:
@@ -2033,6 +2060,8 @@ class _CobrancaWidgetState extends State<CobrancaWidget> {
                                                                           ),
                                                                           focusNode:
                                                                               _model.textFieldUFFocusNode1,
+                                                                          onChanged: (_) =>
+                                                                              safeSetState(() {}),
                                                                           autofocus:
                                                                               false,
                                                                           obscureText:
@@ -3146,9 +3175,7 @@ class _CobrancaWidgetState extends State<CobrancaWidget> {
                                                     ),
                                                     FFButtonWidget(
                                                       onPressed: () async {
-                                                        if (_model
-                                                                .checkboxValue ==
-                                                            true) {
+                                                        if (_podeSalvar) {
                                                           _model.uptadeuser =
                                                               await UsersTable()
                                                                   .update(
@@ -3298,7 +3325,9 @@ class _CobrancaWidgetState extends State<CobrancaWidget> {
                                                               .showSnackBar(
                                                             SnackBar(
                                                               content: Text(
-                                                                'Aceite os termos de uso',
+                                                                !_enderecoCompleto
+                                                                    ? 'Preencha o endereço completo'
+                                                                    : 'Aceite os termos de uso',
                                                                 style:
                                                                     TextStyle(
                                                                   color: FlutterFlowTheme.of(
@@ -3339,7 +3368,7 @@ class _CobrancaWidgetState extends State<CobrancaWidget> {
                                                                     0.0),
                                                         color: valueOrDefault<
                                                             Color>(
-                                                          _model.checkboxValue!
+                                                          _podeSalvar
                                                               ? FlutterFlowTheme
                                                                       .of(
                                                                           context)

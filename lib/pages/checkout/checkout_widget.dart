@@ -13,6 +13,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'checkout_model.dart';
 export 'checkout_model.dart';
 
@@ -75,6 +76,21 @@ class _CheckoutWidgetState extends State<CheckoutWidget> {
     _model.dispose();
 
     super.dispose();
+  }
+
+  List<Widget> _erroPagamentoActions(BuildContext alertDialogContext) {
+    return [
+      TextButton(
+        onPressed: () async {
+          await launchUrl(Uri.parse('https://wa.me/5511912751899'));
+        },
+        child: Text('Chamar Suporte'),
+      ),
+      TextButton(
+        onPressed: () => Navigator.pop(alertDialogContext),
+        child: Text('Ok'),
+      ),
+    ];
   }
 
   @override
@@ -575,15 +591,9 @@ class _CheckoutWidgetState extends State<CheckoutWidget> {
                                                                             .criarCliente
                                                                             ?.bodyText ??
                                                                         '')),
-                                                                    actions: [
-                                                                      TextButton(
-                                                                        onPressed:
-                                                                            () =>
-                                                                                Navigator.pop(alertDialogContext),
-                                                                        child: Text(
-                                                                            'Ok'),
-                                                                      ),
-                                                                    ],
+                                                                    actions:
+                                                                        _erroPagamentoActions(
+                                                                            alertDialogContext),
                                                                   );
                                                                 },
                                                               );
@@ -599,15 +609,9 @@ class _CheckoutWidgetState extends State<CheckoutWidget> {
                                                                         .getCliente
                                                                         ?.bodyText ??
                                                                     '')),
-                                                                actions: [
-                                                                  TextButton(
-                                                                    onPressed: () =>
-                                                                        Navigator.pop(
-                                                                            alertDialogContext),
-                                                                    child: Text(
-                                                                        'Ok'),
-                                                                  ),
-                                                                ],
+                                                                actions:
+                                                                    _erroPagamentoActions(
+                                                                        alertDialogContext),
                                                               );
                                                             },
                                                           );
@@ -720,15 +724,9 @@ class _CheckoutWidgetState extends State<CheckoutWidget> {
                                                                             .getQrCode
                                                                             ?.bodyText ??
                                                                         '')),
-                                                                    actions: [
-                                                                      TextButton(
-                                                                        onPressed:
-                                                                            () =>
-                                                                                Navigator.pop(alertDialogContext),
-                                                                        child: Text(
-                                                                            'Ok'),
-                                                                      ),
-                                                                    ],
+                                                                    actions:
+                                                                        _erroPagamentoActions(
+                                                                            alertDialogContext),
                                                                   );
                                                                 },
                                                               );
@@ -743,15 +741,9 @@ class _CheckoutWidgetState extends State<CheckoutWidget> {
                                                                           .cobrancaPixComSplit
                                                                           ?.bodyText ??
                                                                       '')),
-                                                                  actions: [
-                                                                    TextButton(
-                                                                      onPressed:
-                                                                          () =>
-                                                                              Navigator.pop(alertDialogContext),
-                                                                      child: Text(
-                                                                          'Ok'),
-                                                                    ),
-                                                                  ],
+                                                                  actions:
+                                                                      _erroPagamentoActions(
+                                                                          alertDialogContext),
                                                                 );
                                                               },
                                                             );
@@ -844,15 +836,9 @@ class _CheckoutWidgetState extends State<CheckoutWidget> {
                                                                             .getQrCodeSemSplit
                                                                             ?.bodyText ??
                                                                         '')),
-                                                                    actions: [
-                                                                      TextButton(
-                                                                        onPressed:
-                                                                            () =>
-                                                                                Navigator.pop(alertDialogContext),
-                                                                        child: Text(
-                                                                            'Ok'),
-                                                                      ),
-                                                                    ],
+                                                                    actions:
+                                                                        _erroPagamentoActions(
+                                                                            alertDialogContext),
                                                                   );
                                                                 },
                                                               );
@@ -1204,14 +1190,9 @@ class _CheckoutWidgetState extends State<CheckoutWidget> {
                                                                       return AlertDialog(
                                                                         title: Text(
                                                                             'Revise os dados e tente novamente'),
-                                                                        actions: [
-                                                                          TextButton(
-                                                                            onPressed: () =>
-                                                                                Navigator.pop(alertDialogContext),
-                                                                            child:
-                                                                                Text('Ok'),
-                                                                          ),
-                                                                        ],
+                                                                        actions:
+                                                                            _erroPagamentoActions(
+                                                                                alertDialogContext),
                                                                       );
                                                                     },
                                                                   );
@@ -2500,15 +2481,9 @@ class _CheckoutWidgetState extends State<CheckoutWidget> {
                                                                           .criarClienteCartao
                                                                           ?.bodyText ??
                                                                       '')),
-                                                                  actions: [
-                                                                    TextButton(
-                                                                      onPressed:
-                                                                          () =>
-                                                                              Navigator.pop(alertDialogContext),
-                                                                      child: Text(
-                                                                          'Ok'),
-                                                                    ),
-                                                                  ],
+                                                                  actions:
+                                                                      _erroPagamentoActions(
+                                                                          alertDialogContext),
                                                                 );
                                                               },
                                                             );
@@ -2524,15 +2499,9 @@ class _CheckoutWidgetState extends State<CheckoutWidget> {
                                                                       .getClienteCartao
                                                                       ?.bodyText ??
                                                                   '')),
-                                                              actions: [
-                                                                TextButton(
-                                                                  onPressed: () =>
-                                                                      Navigator.pop(
-                                                                          alertDialogContext),
-                                                                  child: Text(
-                                                                      'Ok'),
-                                                                ),
-                                                              ],
+                                                              actions:
+                                                                  _erroPagamentoActions(
+                                                                      alertDialogContext),
                                                             );
                                                           },
                                                         );
@@ -2734,15 +2703,9 @@ class _CheckoutWidgetState extends State<CheckoutWidget> {
                                                                         .cobrancaCartaoComSplit
                                                                         ?.bodyText ??
                                                                     '')),
-                                                                actions: [
-                                                                  TextButton(
-                                                                    onPressed: () =>
-                                                                        Navigator.pop(
-                                                                            alertDialogContext),
-                                                                    child: Text(
-                                                                        'Ok'),
-                                                                  ),
-                                                                ],
+                                                                actions:
+                                                                    _erroPagamentoActions(
+                                                                        alertDialogContext),
                                                               );
                                                             },
                                                           );
@@ -2921,15 +2884,9 @@ class _CheckoutWidgetState extends State<CheckoutWidget> {
                                                                         .cobrancaCartaoSemSplit
                                                                         ?.bodyText ??
                                                                     '')),
-                                                                actions: [
-                                                                  TextButton(
-                                                                    onPressed: () =>
-                                                                        Navigator.pop(
-                                                                            alertDialogContext),
-                                                                    child: Text(
-                                                                        'Ok'),
-                                                                  ),
-                                                                ],
+                                                                actions:
+                                                                    _erroPagamentoActions(
+                                                                        alertDialogContext),
                                                               );
                                                             },
                                                           );
