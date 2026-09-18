@@ -32,7 +32,10 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace "br.com.stepout.aluno.app"
-    compileSdkVersion 36
+    // Alinhado com o exemplo oficial do jitsi_meet_flutter_sdk (compileSdk 35).
+    // compileSdk 36 (API 36) está associado ao bug de câmera mutada que não
+    // liga no Android — ver Jitsi issue #16191.
+    compileSdkVersion 35
     ndkVersion "28.2.13676358"
 
     compileOptions {
@@ -58,7 +61,10 @@ android {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "br.com.stepout.aluno.app"
         minSdkVersion 26
-        targetSdkVersion 36
+        // targetSdk 35 = exigência da Play. A câmera foi confirmada no 34; o 35
+        // deve manter (o bug de câmera estava no 36/API 36 — ver issue #16191),
+        // mas reconfirmar a câmera num APK targetSdk 35 antes de subir o AAB.
+        targetSdkVersion 35
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
@@ -77,6 +83,14 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig signingConfigs.release
+            // Câmera Android (Jitsi/react-native-webrtc): o R8 estava renomeando e
+            // removendo as classes de captura de vídeo de `com.oney.WebRTCModule.*`
+            // (acionadas por reflexão pela ponte React Native), deixando a câmera
+            // preta SÓ no release Android (iOS/web não passam por R8). Desligar a
+            // minificação resolve e ainda evita o mesmo risco em outros plugins de
+            // reflexão (Supabase, GoTrue, video_player). Ver análise completa.
+            minifyEnabled false
+            shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }

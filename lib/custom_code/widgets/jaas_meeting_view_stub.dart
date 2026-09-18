@@ -51,6 +51,7 @@ enum _PermPhase { checking, joining, blocked }
 class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
   final JitsiMeet _jitsiMeet = JitsiMeet();
   bool _joined = false;
+  bool _conferenceActive = false;
   _PermPhase _phase = _PermPhase.checking;
 
   // Re-join automático após queda: o SDK mobile NÃO tem renovação de JWT em
@@ -181,12 +182,16 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
       conferenceJoined: (url) {
         // Conferência saudável — zera o contador de re-join
         _rejoinCount = 0;
+        if (mounted) setState(() => _conferenceActive = true);
       },
       conferenceTerminated: (url, error) {
         if (!mounted) {
           return;
         }
-        setState(() => _joined = false);
+        setState(() {
+          _joined = false;
+          _conferenceActive = false;
+        });
 
         // Terminou com ERRO e não foi saída intencional: pede um JWT fresco
         // pro pai (o token atual pode ter expirado — no mobile não existe
@@ -235,6 +240,33 @@ class _JaasMeetingViewPlatformState extends State<JaasMeetingViewPlatform> {
   }
 
   Widget _buildLoading() {
+    // Conferência ativa: esta tela só fica visível quando o aluno minimiza a
+    // chamada nativa (que roda por cima do app) — orienta em vez de "carregar".
+    if (_conferenceActive) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          Icon(Icons.video_camera_front, color: Colors.white, size: 48),
+          SizedBox(height: 16),
+          Text(
+            'Aula em andamento',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 8),
+          Text(
+            'A chamada continua na janelinha flutuante. '
+            'Toque nela para voltar à tela cheia.',
+            style: TextStyle(color: Colors.white70, fontSize: 14),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      );
+    }
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [

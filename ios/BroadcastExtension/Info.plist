@@ -16,10 +16,15 @@
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+	<!-- ATENÇÃO: precisa BATER com a versão do app (Runner) a cada release —
+	     App Store exige appex CFBundleShortVersionString/CFBundleVersion == host app.
+	     Hardcoded porque $(FLUTTER_BUILD_NAME)/$(FLUTTER_BUILD_NUMBER) NÃO existem
+	     no target da extensão (só no Runner), o que deixava CFBundleVersion vazio
+	     e o iOS recusava instalar (MissingBundleVersion). -->
 	<key>CFBundleShortVersionString</key>
-	<string>$(FLUTTER_BUILD_NAME)</string>
+	<string>1.0.2</string>
 	<key>CFBundleVersion</key>
-	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<string>13</string>
 	<key>NSExtension</key>
 	<dict>
 		<key>NSExtensionPointIdentifier</key>

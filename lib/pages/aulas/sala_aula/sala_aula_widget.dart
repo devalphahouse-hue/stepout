@@ -39,6 +39,12 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
   final _jaasMeetingKey = GlobalKey();
 
+  // Conteúdos vinculados — controle do botão flutuante/bottom sheet (mobile)
+  bool _infoSheetOpen = false;
+  bool _autoOpenScheduled = false;
+  int _conteudosCount = 0;
+  int _conteudosVistos = 0;
+
   Future<void> _loadJitsiToken() async {
     _jwtError = '';
     safeSetState(() {});
@@ -113,37 +119,30 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    // Ensure the stream is initialized (cached with ??= so it's safe to use in multiple StreamBuilders)
-    _model.salaAulaSupabaseStream ??= SupaFlow.client
-        .from("Aulas")
-        .stream(primaryKey: ['id'])
-        .eqOrNull(
-          'id',
-          widget!.aulaId,
-        )
-        .map((list) => list.map((item) => AulasRow(item)).toList());
+  void _scheduleAutoOpenIfNeeded() {
+    // Abre o bottom sheet sozinho quando ha conteudo vinculado que o aluno
+    // ainda nao viu (inclusive chegando em tempo real durante a aula) — no
+    // mobile a chamada nativa cobre o app, entao ao minimizar o aluno ja
+    // encontra os conteudos na tela.
+    if (_conteudosCount <= _conteudosVistos ||
+        _infoSheetOpen ||
+        _autoOpenScheduled) {
+      return;
+    }
+    _autoOpenScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _autoOpenScheduled = false;
+      if (!mounted || _infoSheetOpen) return;
+      if (_conteudosCount > _conteudosVistos) {
+        _openInfoSheet();
+      }
+    });
+  }
 
-    return GestureDetector(
-          onTap: () {
-            FocusScope.of(context).unfocus();
-            FocusManager.instance.primaryFocus?.unfocus();
-          },
-          child: Scaffold(
-            key: scaffoldKey,
-            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
-            floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
-            floatingActionButton: responsiveVisibility(
-              context: context,
-              tabletLandscape: false,
-              desktop: false,
-            )
-                ? PointerInterceptor(
-                    child: FloatingActionButton(
-                    backgroundColor: FlutterFlowTheme.of(context).primary,
-                    onPressed: () {
-                      showModalBottomSheet(
+  Future<void> _openInfoSheet() async {
+    if (_infoSheetOpen) return;
+    _infoSheetOpen = true;
+    await showModalBottomSheet(
                         context: context,
                         isScrollControlled: true,
                         enableDrag: false,
@@ -372,16 +371,31 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
                           },
                           );
                         },
-                      );
-                    },
-                    child: Icon(
-                      Icons.article_outlined,
-                      color: FlutterFlowTheme.of(context).info,
-                      size: 24.0,
-                    ),
-                  ),
-                )
-                : null,
+                      );;
+    _infoSheetOpen = false;
+    _conteudosVistos = _conteudosCount;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Ensure the stream is initialized (cached with ??= so it's safe to use in multiple StreamBuilders)
+    _model.salaAulaSupabaseStream ??= SupaFlow.client
+        .from("Aulas")
+        .stream(primaryKey: ['id'])
+        .eqOrNull(
+          'id',
+          widget!.aulaId,
+        )
+        .map((list) => list.map((item) => AulasRow(item)).toList());
+
+    return GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+            FocusManager.instance.primaryFocus?.unfocus();
+          },
+          child: Scaffold(
+            key: scaffoldKey,
+            backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
             drawer: Drawer(
               elevation: 16.0,
               child: PointerInterceptor(
@@ -423,26 +437,130 @@ class _SalaAulaWidgetState extends State<SalaAulaWidget> {
               children: [
                 if (responsiveVisibility(
                   context: context,
-                  tablet: false,
                   tabletLandscape: false,
                   desktop: false,
                 ))
-                  Padding(
-                    padding:
-                        EdgeInsetsDirectional.fromSTEB(0.0, 4.0, 0.0, 0.0),
-                    child: FlutterFlowIconButton(
-                      borderRadius: 8.0,
-                      buttonSize: 40.0,
-                      fillColor: FlutterFlowTheme.of(context).primary,
-                      icon: Icon(
-                        Icons.menu_open,
-                        color: FlutterFlowTheme.of(context).info,
-                        size: 24.0,
-                      ),
-                      onPressed: () async {
-                        scaffoldKey.currentState!.openDrawer();
-                      },
-                    ),
+                  StreamBuilder<List<AulasRow>>(
+                    stream: _model.salaAulaSupabaseStream,
+                    builder: (context, headerSnapshot) {
+                      final headerRows = headerSnapshot.data ?? [];
+                      if (headerRows.isNotEmpty) {
+                        _conteudosCount =
+                            headerRows.first.conteudosVinculados?.length ?? 0;
+                      }
+                      _scheduleAutoOpenIfNeeded();
+                      return Container(
+                        width: double.infinity,
+                        color: FlutterFlowTheme.of(context).primary,
+                        padding: EdgeInsetsDirectional.fromSTEB(
+                            4.0, 6.0, 12.0, 6.0),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            FlutterFlowIconButton(
+                              borderRadius: 8.0,
+                              buttonSize: 40.0,
+                              fillColor: Colors.transparent,
+                              icon: Icon(
+                                Icons.menu,
+                                color: FlutterFlowTheme.of(context).info,
+                                size: 24.0,
+                              ),
+                              onPressed: () async {
+                                scaffoldKey.currentState!.openDrawer();
+                              },
+                            ),
+                            SizedBox(width: 4.0),
+                            Expanded(
+                              child: Text(
+                                'Sala de Aula',
+                                style: FlutterFlowTheme.of(context)
+                                    .titleSmall
+                                    .override(
+                                      font: GoogleFonts.inter(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      color: FlutterFlowTheme.of(context).info,
+                                      letterSpacing: 0.0,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                            ),
+                            InkWell(
+                              splashColor: Colors.transparent,
+                              focusColor: Colors.transparent,
+                              hoverColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
+                              onTap: _openInfoSheet,
+                              child: Container(
+                                padding: EdgeInsetsDirectional.fromSTEB(
+                                    12.0, 7.0, 12.0, 7.0),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(20.0),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.35),
+                                    width: 1.0,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.article_outlined,
+                                      color:
+                                          FlutterFlowTheme.of(context).info,
+                                      size: 18.0,
+                                    ),
+                                    SizedBox(width: 6.0),
+                                    Text(
+                                      'Conteúdos',
+                                      style: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .override(
+                                            font: GoogleFonts.inter(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                            color: FlutterFlowTheme.of(
+                                                    context)
+                                                .info,
+                                            letterSpacing: 0.0,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                    ),
+                                    if (_conteudosCount > 0) ...[
+                                      SizedBox(width: 6.0),
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 6.0, vertical: 2.0),
+                                        constraints: BoxConstraints(
+                                            minWidth: 20.0,
+                                            minHeight: 20.0),
+                                        decoration: BoxDecoration(
+                                          color: FlutterFlowTheme.of(context)
+                                              .error,
+                                          borderRadius:
+                                              BorderRadius.circular(10.0),
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          '$_conteudosCount',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12.0,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 Expanded(
                   child: Container(

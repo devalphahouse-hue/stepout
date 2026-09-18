@@ -1,6 +1,7 @@
 import '/auth/supabase_auth/auth_util.dart';
 import '/backend/schema/structs/index.dart';
 import '/backend/supabase/supabase.dart';
+import '/custom_code/actions/check_for_update.dart';
 import '/componentes/bottom_nav_mobile/bottom_nav_mobile_widget.dart';
 import '/componentes/sidebar/sidebar_widget.dart';
 import '/componentes/sidebar_slim/sidebar_slim_widget.dart';
@@ -43,7 +44,11 @@ class _DashboardWidgetState extends State<DashboardWidget> {
     super.initState();
     _model = createModel(context, () => DashboardModel());
 
-    WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      safeSetState(() {});
+      // Aviso opcional de nova versão nas lojas (iOS/Android).
+      checkForUpdate(context);
+    });
   }
 
   @override

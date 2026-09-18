@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.1+11
+version: 1.0.3+15
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -112,6 +112,7 @@ dependencies:
   webview_flutter_wkwebview: 3.22.0
   pointer_interceptor: ^0.10.1
   permission_handler: ^11.3.1
+  package_info_plus: ^8.3.1
   jitsi_meet_flutter_sdk: ^11.6.0
 
   # The following adds the Cupertino Icons font to your application.
@@ -126,8 +127,18 @@ dependency_overrides:
 dev_dependencies:
   flutter_lints: 4.0.0
   lints: 4.0.0
+  flutter_launcher_icons: ^0.13.1
   flutter_test:
     sdk: flutter
+
+# Launcher (home-screen) icon generation. Source = the same brand badge used by
+# the iOS AppIcon (STEP OUT — English Club). Run `dart run flutter_launcher_icons`
+# after editing this block to regenerate android/app/src/main/res/mipmap-*/ic_launcher.png.
+# Android-only here (iOS icons are managed directly in the AppIcon asset catalog).
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: false
+  image_path: "ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-1024x1024@1x.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
